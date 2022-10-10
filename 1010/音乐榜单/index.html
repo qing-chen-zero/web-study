@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐榜单</title>
+    <style>
+        * {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        #main {
+            width: 30%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 2px 5px;
+        }
+
+        #main ul {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            list-style: none;
+            text-align: left;
+            padding: 10px 0;
+
+        }
+
+        #control {
+            text-align: left;
+            margin: 10px 0;
+        }
+
+        #insert_data {
+            outline: 1px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <h1>百度音乐榜单</h1>
+        <ul class="list">
+            <li>
+                <input type="checkbox" name="" id="" class="check">
+                <span>第一条信息</span>
+                <a href="javascript:;">收藏</a>
+                <a href="javascript:;">取消收藏</a>
+                <a href="javascript:;">删除</a>
+            </li>
+        </ul>
+        <div id="control">
+            <input type="checkbox" name="" id="select_all">
+            <span>全选/全不选</span>
+            <a href="javascript:;" id="remove_all">删除</a>
+            <input type="text" name="" id="insert_data">
+            <a href="javascript:;" id="insert_fun">添加</a>
+        </div>
+    </div>
+
+    <script>
+        let data = [
+            {
+                id: 1,
+                title: "第一首歌曲 -- xxx",
+                checked: true,
+                collect: false
+            },
+            {
+                id: 2,
+                title: "第二首歌曲 -- xxx",
+                checked: false,
+                collect: true
+            },
+            {
+                id: 3,
+                title: "第三首歌曲 -- xxx",
+                checked: true,
+                collect: false
+            },
+            {
+                id: 4,
+                title: "第四首歌曲 -- xxx",
+                checked: true,
+                collect: false
+            },
+            {
+                id: 5,
+                title: "第五首歌曲 -- xxx",
+                checked: false,
+                collect: false
+            },
+            {
+                id: 6,
+                title: "第六首歌曲 -- xxx",
+                checked: false,
+                collect: false
+            },
+            {
+                id: 7,
+                title: "第七首歌曲 -- xxx",
+                checked: false,
+                collect: false
+            }
+        ];
+
+        function renderData(data) {
+            document.querySelector(".list").innerHTML = "";
+            data.forEach(item => {
+                let list = document.createElement("li");
+                list.innerHTML = `
+                                <input type="checkbox" name="" id="" class="check" ${item.checked ? "checked" : ""}>
+                                <span>${item.title}</span>
+                                ${item.collect ? '<a href="javascript:;" class="cancelCollect">取消收藏</a>' : '<a href="javascript:;" class="collect">收藏</a>'}
+                                <a href="javascript:;" class="remove">删除</a>
+                                `;
+                document.querySelector("#main ul").appendChild(list);
+            })
+            addEvent();
+        }
+        renderData(data);
+
+        function addEvent() {
+            let li_list = document.querySelectorAll(".list li");
+            [...li_list].forEach((item, key) => {
+                item.onclick = function (e) {
+                    switch (e.target.className) {
+                        case "check":
+                            data[key].checked = e.target.checked;
+                            break;
+                        case "cancelCollect":
+                            data[key].collect = false;
+                            break;
+                        case "collect":
+                            data[key].collect = true;
+                            break;
+                        case "remove":
+                            data.splice(key, 1);
+                            break;
+                    }
+                    renderData(data);
+                }
+
+            })
+        }
+        document.querySelector("#control").onclick = function(e) {
+            switch(e.target.id) {
+                case "select_all":
+                    data.forEach(element => {
+                        element.checked = e.target.checked
+                    });
+                    break;
+                case "remove_all":
+                    let delete_data = data.filter(item => !item.checked)
+                    data = delete_data
+                    break;
+                case "insert_fun":
+                    let ins_data = document.querySelector("#insert_data").value;
+                    let ins_id;
+                    if (data.length != 0) {
+                        ins_id = data[data.length-1].id + 1
+                    } else {
+                        ins_id = 1;
+                    }
+                    data.push({
+                            id: ins_id,
+                            title: ins_data,
+                            checked: false,
+                            collect: false
+                    })
+                    document.querySelector("#insert_data").value = "";
+                    break;
+            }
+            renderData(data)
+        }
+
+        document
+    </script>
+</body>
+
+</html>

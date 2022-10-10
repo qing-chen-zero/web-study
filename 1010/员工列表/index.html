@@ -41,6 +41,9 @@
             width: 25%;
             text-align: center;
         }
+        #main ul li a.active {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -52,7 +55,7 @@
             
             <li><a href="javascript:;">年龄从小到大</a></li>
             <li><a href="javascript:;">年龄从大到小</a></li>
-            <li><a href="javascript:;">默认排序</a></li>
+            <li><a href="javascript:;" class="active">默认排序</a></li>
         </ul>
         <ul class="sex_show">
             <!-- <li><a href="javascript:showMan(data,'男');">只显示男性</a></li>
@@ -61,7 +64,7 @@
             
             <li><a href="javascript:;">只显示男性</a></li>
             <li><a href="javascript:;">只显示女性</a></li>
-            <li><a href="javascript:;">默认</a></li>
+            <li><a href="javascript:;" class="active">默认</a></li>
         </ul>
         <table>
             <thead>
@@ -117,6 +120,9 @@
             },
             
         ]
+        let ageIndex = 2
+        let sexIndex = 2
+
         function rendeDate(data) {
             document.querySelector("tbody").innerHTML = "";
             for(let i = 0;i < data.length; i++) {
@@ -172,6 +178,9 @@
         //获取所有年龄操作节点
         
         let ageSortElem = document.querySelectorAll(".age_sort a");
+        
+        //ES5写法
+        /*
         let sortAge = [
             function(date) {
                 return data.sort((r1,r2) => r1.age - r2.age);
@@ -183,15 +192,43 @@
                 return data;
             }
         ];
+        */
+       //ES6写法
+       let sortAge = [
+            data => data.map(item=>item).sort((x1, x2) => x1.age - x2.age ),
+            data => data.map(item=>item).sort((x1, x2) => x2.age - x1.age),
+            data => data.map(item=>item)
+       ];
         [...ageSortElem].forEach( (item, key) => {
-            let cp_data = JSON.parse(JSON.stringify(data))
+            // let cp_data = JSON.parse(JSON.stringify(data))
             item.onclick = function(e){
-                rendeDate(sortAge[key](cp_data));
+                document.querySelector(".age_sort .active").removeAttribute("class")
+                let ageData = sortAge[key](data);
+                ageIndex = key
+                let showData = showBysex[sexIndex](ageData)
+                rendeDate(showData);
+                item.setAttribute("class","active")
             }
+
         })
+
         //获取所有性别操作节点
         let sexShowElem = document.querySelectorAll(".sex_show a")
-
+        let showBysex = [
+            data => data.filter(people=>people.sex=='男'),
+            data => data.filter(people=>people.sex=='女'),
+            data => data.map(item => item)
+        ];
+        [...sexShowElem].forEach((item, key) => {
+            item.onclick = function() {
+                document.querySelector(".sex_show .active").removeAttribute("class");
+                let sexData = showBysex[key](data)
+                sexIndex = key
+                let showData = sortAge[ageIndex](sexData)
+                rendeDate(showData);
+                item.setAttribute("class","active")
+            }
+        })
     </script>
     
 </body>
