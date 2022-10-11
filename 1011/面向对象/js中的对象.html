@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS中的对象</title>
+</head>
+<body>
+    
+
+    <script>
+        //对象创建
+        //1. 字面量方式
+        let obj = {
+            name:"qc",
+            age:15,
+            hobby:function() {
+                console.log("love playing games");
+            }
+        }
+        //2. 构造函数
+        let obj2 = new Object();
+        obj2.name = "cq";
+        obj2.age = 15;
+        //3. Object.create(); 属性方法放在原型上
+        let obj3 = Object.create({
+            name: "cqc",
+            age: 32,
+            hobby() {
+                console.log("loving");
+            }
+        })
+
+        // 对象的调用
+        
+        console.log(obj["name"],obj.name);
+        obj.hobby();
+
+
+
+        //工厂模式
+        function Person(name, age, hobby){
+            let obj = {}
+            obj.name = name;
+            obj.age = age;
+            obj.hobby = function() {
+                console.log(hobby);
+            }
+            return obj;
+        }
+
+        let test1 = Person("张三",17,"喜欢看书");
+        let test2 = Person("李宋",12,"喜欢书");
+        let test3 = Person("吴三",41,"喜欢看");
+        console.log(test1, test2, test3);
+    </script>
+</body>
+</html>
