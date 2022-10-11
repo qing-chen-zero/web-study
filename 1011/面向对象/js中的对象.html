@@ -34,12 +34,12 @@
 
         // 对象的调用
         
-        console.log(obj["name"],obj.name);
-        obj.hobby();
+        // console.log(obj["name"],obj.name);
+        // obj.hobby();
 
 
 
-        //工厂模式
+        //工厂模式 类
         function Person(name, age, hobby){
             let obj = {}
             obj.name = name;
@@ -53,7 +53,100 @@
         let test1 = Person("张三",17,"喜欢看书");
         let test2 = Person("李宋",12,"喜欢书");
         let test3 = Person("吴三",41,"喜欢看");
-        console.log(test1, test2, test3);
+        // console.log(test1, test2, test3);
+
+
+        // new 运算符
+        let str = ""
+        let str1 = new String();
+        // 1. 执行函数 2.自动创建一个空对象 3. 把空对象和this绑定 4.如果没有返还，隐式返还this
+        function test() {
+            console.log("test-func");
+        }
+        // test();
+        // new test()
+        // new test; //都可以调用
+
+        // function test() {
+        //     let obj = {}  // === this
+
+        //     // return this
+        // }
+
+        //改写Person 类
+        function Person1(name, age, hobby){
+            // let obj = {}
+            this.name = name;
+            this.age = age;
+            this.hobby = function() {
+                console.log(hobby);
+            }
+            // return obj; 自动返回this
+        }
+
+        let man = new Person1("jiajia", 20, "love me");
+        console.log(man);
+
+        // 构建函数及静态成员
+        function Person2(name) {
+            this.name = name;
+            this.age = 20;
+            // this.hobby = function () {
+            //     console.log("love me");
+            // }
+        }
+
+        //静态成员
+        // Person2.num = 0;
+        //静态属性和方法 属于类本身
+        
+        // let zhangsan = new Person2("zhangsan");
+        // Person2.num++;
+        // let lisi = new Person2("lisi");
+        // Person2.num++;
+        // let wanger = new Person2("wanger");
+        // Person2.num++;
+        // console.log(Person2.num);
+
+        // 构造函数性能问题
+        let zhangsan = new Person2("zhangsan");
+        let lisi = new Person2("lisi");
+
+        console.log(zhangsan.hobby === lisi.hobby);
+
+        //原型
+        Person2.prototype.hobby = function() {
+            console.log("喜欢我");
+        }
+
+        //每个实例化对象都有一个自身的原型
+        console.log(zhangsan.__proto__ === Person2.prototype);
+        //原型的固有属性 指向原型
+        console.log(Person2.prototype.constructor === Person2);
+
+        // 改写prototype 会覆盖constructor
+        Person2.prototype =  {
+            hobby: function(){
+                console.log("hobby");
+            }
+        }
+
+        //使用constructor判断类型
+        let type = new String("test");
+        let types = "test";
+        console.log(type.constructor === String);
+        console.log(types.constructor ===  String);
+
+
+        // 对象、 原型prototype、构造函数constructor三者之间的关系
+        function People(name) {
+            this.name = name;
+            this.age = 20;
+        }
+        People.prototype.fn = function(){
+            console.log("fn");
+        }
+        let zhang = new People("张三");
     </script>
 </body>
 </html>
