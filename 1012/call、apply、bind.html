@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>call,apply,bind</title>
+</head>
+
+<body>
+
+    <script>
+        function foo(name, age) {
+            console.log(this, "姓名：" + name + "年龄是：" + age);
+        }
+        let call_test = {
+            name: "张三"
+        }
+        foo.call(call_test, "张三", 20); // 改变this指向
+        foo.apply(call_test, ["张三", 20]);
+        foo.bind(call_test)("张三", 20);
+
+        //继承
+        function Dad(name, age) {
+            this.name = name;
+            this.age = age;
+            this.money = "10000";
+        }
+        Dad.prototype.fn = function () {
+            console.log("fn");
+        }
+        function Son(name, age) {
+            // Dad.call(this,name, age);
+            // Dad.apply(this,[name,age])
+            Dad.bind(this)(name, age);
+        }
+
+        // let zhangsan = new Son("张三", 20);
+        // console.log(zhangsan.money);
+
+        //原型继承
+        //zhangsan.fn(); //拿不到父类的prototype属性
+        // 1. 子类的原型 等于 父类的原型  
+        Son.prototype = Dad.prototype;
+        Son.prototype.fn = function () {
+            console.log("我是重写的fn");
+
+        }
+        let zhangsan = new Son("张三", 20);
+        zhangsan.fn()
+        let father = new Dad("father", 42);
+        father.fn()
+        //存在的问题， 重写子类的方法，会改变父类的方法
+
+        // 传值和传址
+        // 复杂的数据类型传址
+        let DadProto = {
+            name: "张三",
+            age: 30
+        }
+        let SonProto = DadProto; //传址
+        SonProto.name = "里斯";
+        console.log(SonProto);
+        console.log(DadProto); //被重写
+
+        // 简单数据类型 传值
+        let a = 10;
+        let b = a;
+        b = 20;
+        console.log(a, b);
+
+        // 使用深拷贝解决此问题  深拷贝 重新开辟地址空间
+        let DadPrototype = {
+            name: "张三",
+            age: 20,
+            fn: function () {
+                console.log("fn...");
+            },
+            test: undefined
+        }
+        //使用JSON进行转化，序列化 但会丢失方法与undefined
+
+        let SonPrototype = JSON.parse(JSON.stringify(DadPrototype));
+        SonPrototype.name = "里斯";
+        console.log("son:", SonPrototype);
+        console.log("dad:", DadPrototype);
+
+        let obj = {
+            name: "张三",
+            age: 20,
+            fn: function () {
+                console.log("fn...");
+            },
+            test: undefined,
+            arr: [1,5,1,7]
+        }
+        let obj2 = deepCopy(obj);
+        obj2.name = "里斯"
+        console.log(obj);
+
+        console.log(obj2);
+        // 使用深拷贝方法
+        function deepCopy(obj) {
+            let newObj = Array.isArray(obj) ? [] : {};
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    if (typeof obj[key] === "object") {
+                        newObj[key] = deepCopy(obj[key]);
+                    } else {
+                        newObj[key] = obj[key];
+                    }
+                }
+            }
+            return newObj;
+        }
+        // 原型深拷贝 也不影响
+        // function Chees(name, age) {
+        //     this.name = name;
+        //     this.age = age;
+        // }
+        // Chees.prototype.fn = function() {
+        //     console.log("象棋");
+        // }
+        // function Ball(name,age) {
+        //     Chees.call(this, name, age);
+        // }
+        // Ball.prototype = deepCopy(Chees.prototype);
+        // Ball.prototype.fn = function() {
+        //     console.log("篮球");
+        // }
+        // let ball = new Ball("lanqiu", 2000);
+        // let chees = new Chees("xiangqi", 10000);
+        // ball.fn()
+        // chees.fn()
+
+
+       //组合继承
+       function Chees(name, age) {
+            this.name = name;
+            this.age = age;
+        }
+        Chees.prototype.fn = function() {
+            console.log("象棋");
+        }
+        function Ball(name,age) {
+            Chees.call(this, name, age);
+        }
+        // Ball.prototype = deepCopy(Chees.prototype);
+        let Link = function() {};
+        Link.prototype = Chees.prototype;
+        Ball.prototype = new Link() //覆盖自身的constructor
+        Ball.prototype.constructor = Ball;
+
+
+        Ball.prototype.fn = function() {
+            console.log("篮球");
+        }
+        let ball = new Ball("lanqiu", 2000);
+        let chees = new Chees("xiangqi", 10000);
+        console.log(ball);
+        console.log(chees);
+    </script>
+</body>
+
+</html>

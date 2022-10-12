@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>面对对象基础</title>
+</head>
+
+<body>
+    <script>
+
+        //1. 面向过程   2. 面向对象；思维方式
+        //面向对象 对象-> 属性及方法 --> 抽象 (类)  --> 逻辑关系 --> 类的抽象 --> 继承 --> 基类
+        // 类 --> 对象；
+
+        //ES5 类；
+        // function Person(name) {
+        //     this.name = name;
+        //     this.age = 20;
+        //     this.fn = function() {
+        //         console.log("fn");
+        //     }
+        // }
+        // Person.prototype.hobby = function() {
+        //     console.log("love me");
+        // }
+
+        // let zhangsan = new Person("张三");
+
+        //ES6 语法糖
+        class People {
+            constructor(name) {
+                this.name = name;
+                this.age = 20;
+                this.fn = function () {
+                    console.log("fn");
+                }
+            }
+            hobby() {
+                console.log("love you");
+            }
+        }
+        let lisi = new People("里斯")
+        lisi.fn();
+
+        // ES5 共有私有
+        function Person(name) {
+            let _little_name = "狗蛋";
+            this.name = name;
+            this.age = 20;
+        }
+
+        let zhangsan = new Person("张三");
+
+        //ES6 共有私有
+        class Personal {
+            // 私有属性
+            #little_name = "杨二狗";
+            constructor(name) {
+                this.name = name;
+                this.age = 20;
+
+            }
+            getName() {
+                console.log(this.#little_name);
+            }
+        }
+        let liwu = new Personal("里屋");
+        liwu.getName()
+        // console.log(liwu.#little_name);
+
+        // 静态属性 属于类， 实例话对象后访问不到 ES5
+        Person.num = 10;
+        console.log(Person.num);
+        console.log(zhangsan.num);
+        // ES6 静态属性
+        class Man {
+            static num = 10;
+            constructor(name) {
+                this.name = name;
+                this.age = 20;
+            }
+        }
+
+        let xiaoming = new Man("小明")
+        console.log(xiaoming.num); // 访问不到
+        console.log(Man.num);
+        // 只实例化一次
+        class Once {
+            static instance = null;
+            constructor(name) {
+                if (!Once.instance) {
+                    //记录实例化对象
+                    console.log("第一次实例化");
+                    Once.instance = this;
+                } else {
+                    return Once.instance;
+                }
+                this.name = name;
+            }
+        }
+
+        let wanger = new Once("王二");
+        let mazi = new Once("麻子");
+        console.log(wanger, mazi);
+
+        //ES5 继承
+        function Dad(name) {
+            this.name = name;
+            this.age = 50;
+        }
+        function Son(name) {
+            Dad.call(this,name);
+        }
+        let test = new Son("test");
+        console.log(test.age);
+
+        // ES6 继承
+        class Daddy {
+            constructor(name) {
+                this.name = name;
+                this.age = 50;
+            }
+            hobby() {
+                console.log("hobby");
+            }
+        }
+        class Daughter extends Daddy {
+            constructor(name) {
+                super(name); // 使用super把name 传给父类 super 一定要在自定义属性之前
+                this.height = "180cm";
+            }
+        }
+
+        let test1 = new Daughter("test1");
+        console.log(test1.age);
+        test1.hobby();
+
+    </script>
+</body>
+
+</html>
