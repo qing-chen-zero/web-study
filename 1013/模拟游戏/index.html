@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟游戏</title>
+    
+    <style>
+        :root {
+            --input-width: 150px;
+            --box-width: 540px;
+            --box-height: 300px;
+        }
+        .login {
+            width: var(--box-width);
+            margin: 0 auto;
+            background: url(./sources/login_bg.jpg) no-repeat;
+            background-size: cover;
+            height: var(--box-height);
+            position: relative;
+            /* display: none; */
+        }
+        #username {
+            width: var(--input-width);
+            position: absolute;
+            left: 195px;
+            bottom: 75px;
+        }
+        .login button {
+            height: 30px;
+            width: 130px;
+            position: absolute;
+            left: 205px;
+            bottom: 35px;
+        }
+        .game {
+            width: var(--box-width);
+            height: var(--box-height);
+            margin: 0 auto;
+            background: url(./sources/game_bg.jpg) no-repeat;
+            background-size: cover;
+            display: none;
+        }
+        #left {
+            width: 23%;
+            text-align: center;
+            color: #fff;
+        }
+        .select_option {
+            display: flex;
+            flex-direction: row;
+        }
+        #left button {
+            display: block;
+            width: 50%;
+            flex-wrap: wrap;
+        }
+        .select_hero {
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: row;
+            /* justify-content: space-around; */
+            flex-wrap: wrap;
+        }
+        .hero {
+            width: 40%;
+            min-width: 50px;
+            margin: 0 6px;
+        }
+        .hero_icon{
+            cursor:pointer;
+            width: 100%;
+        }
+        .hero span {
+            display: block;
+            font-size: 12px;
+        }
+        #mid {
+            width: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #mid img {
+            width: 100px;
+            
+        }
+        #hero_skills {
+            width: 10%;
+            position: absolute;
+            right: 0;
+            top: 20px;
+        }
+        #hero_skills img {
+            width: 30px;
+        }
+        #right {
+            width: 17%;
+            color: #fff;
+            text-align: center;
+        }
+        .select_hero_icon {
+            width: 50px;
+        }
+        .time {
+            display: block;
+        }
+        .user {
+            display: block;
+            font-size: 12px;
+        }
+    </style>
+    
+</head>
+<body>
+    <!-- 登陆界面 -->
+    <div class="login">
+        <input type="text" id="username">
+        <button class="login_btn">登陆</button>
+    </div>
+    <!-- 游戏选择 -->
+    <div class="game">
+        <div id="left">
+            <div class="select_option">
+                <button>英雄</button>
+                <button>皮肤</button>
+            </div>
+            <div class="select_hero">
+                <div class="hero">
+                    <img src="./sources/LubanIcon.jpg" alt="" class="hero_icon">
+                    <span>鲁班</span>
+                </div>
+            </div>
+        </div>
+        <div id="mid">
+            <!-- <img src="./sources/Luban.jpg" alt="" class="hero_main"> -->
+            <div id="hero_skills">
+                <!-- <img src="./sources/Luban1.png" alt="">
+                <img src="./sources/Luban2.png" alt="">
+                <img src="./sources/Luban3.png" alt="">
+                <img src="./sources/Luban4.png" alt=""> -->
+            </div>
+        </div>
+        <div id="right">
+            <span class="time">00:30</span>
+            <img src="./sources/defaultIcon.png" alt="" class="select_hero_icon">
+            <span class="user">张三</span>
+        </div>
+    </div>
+    <script type="module" src="./js/index.js"></script>
+</body>
+</html>

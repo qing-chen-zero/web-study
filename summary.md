@@ -344,5 +344,79 @@ let test1 = new Daughter("test1");
 console.log(test1.age);
 ~~~
 
+## 合并空运算符
 
+~~~ javascript
+function test(name, age) {
+  // name = name || "默认名称";
+  // age = age || 25;
+  name = name ?? "默认名称";
+  age = age ?? 25;
+  console.log(name,age);
+}
+test("", 0);
+test("张三",20)
+~~~
+
+## 可选链式操作
+
+~~~ javascript	
+// 可选链式操作
+let obj = {
+  name: {
+    age:20
+  }
+};
+console.log(obj?.name?.age); // 如果没有不会报错， 输出undefined
+~~~
+
+# ESM 模块化 ES Module
+
+## 导入 import from
+
+~~~ html
+<script type="module">
+  import b, {a, c} from "./a.js";
+</script>
+~~~
+
+## 导出 export / export default
+
+~~~ javascript
+// a.js
+//导出多个
+export let a = 10;
+export let c = 30;
+
+let b = 20;
+//导出一个
+export default b;
+~~~
+
+## 通过as 起别名
+
+~~~ javascript
+import {obj as info} from "./a.js";
+~~~
+
+## 通过通配符 * 一次性导入
+
+~~~ javascript
+import * as info from "./a.js";
+~~~
+
+## 按需导入
+
+~~~ javascript
+document.onclick = async function() {
+  // import b from "./b.js";  // 此写法会报错，不能这样导入。 只能在外面导
+  // 返回Promise对象
+  // import("./b.js").then(res => {
+  //     console.log(res);
+  // })
+  // 改写同步异步
+  let res = await import("./b.js");
+  console.log(res);
+}
+~~~
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESM</title>
+</head>
+<body>
+    
+    <script type="module">
+        // ES Module ESM;  AMD: require.js ; CMD : sea.js;
+        // ESM / COMMONJS规范 、 nodejs 模块化
+        // ES6模块化 导入 import from   导出 export：
+        // 引入
+        // import b, {a, c, obj as info} from "./a.js";
+        // console.log(b,a,c, info);
+        // 通过as 起别名
+
+        // 通配符导入
+        import * as info from "./a.js";
+        console.log(info);
+        
+        //按需导入
+        document.onclick = async function() {
+            // import b from "./b.js";
+            // 返回Promise对象
+            // import("./b.js").then(res => {
+            //     console.log(res);
+            // })
+            // 同步异步
+            let res = await import("./b.js");
+            console.log(res);
+        }
+
+    </script>
+</body>
+</html>

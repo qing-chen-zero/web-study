@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>面向对象基础</title>
+</head>
+<body>
+    <script>
+
+        //ES 2020 合并空运算符
+        function test(name, age) {
+            // name = name || "默认名称";
+            // age = age || 25;
+            name = name ?? "默认名称";
+            age = age ?? 25;
+            console.log(name,age);
+        }
+        test("", 0);
+        test("张三",20)
+
+        // 可选链式操作
+        let obj = {
+            name: {
+                age:20
+            }
+        };
+        console.log(obj?.name?.age);
+
+        
+    </script>
+</body>
+</html>
