@@ -483,3 +483,91 @@ Person {name: '张三'}
 Person {name: '张三'}
 ~~~
 
+### 工厂模式
+
+~~~ javascript
+function Factory() {
+    let obj = {}
+    obj.name = "张三";
+    obj.age = 20;
+    //出厂
+    return obj;
+
+}
+let object = Factory()
+console.log(object);
+
+class Luban {
+    constructor () {
+        this.name = "鲁班"
+    }
+}
+class Yase {
+    constructor () {
+        this.name = "亚瑟"
+    }
+}
+class Wangzhaojun {
+    constructor () {
+        this.name = "王昭君"
+    }
+}
+
+function fac(name){
+    switch(name) {
+        case 'yase' :
+            return new Yase();
+            break;
+        case 'luban' :
+            return new Luban();
+            break;
+        case 'wangzhaojun' :
+            return new Wangzhaojun();
+            break;    
+    }
+}
+console.log(fac("luban"));
+~~~
+
+### 装饰者模式
+
+~~~ javascript
+// @ 装饰器  需要配置webpack环境
+class Hero {
+    constructor(name) {
+        this.name = name;
+    }
+    fire() {
+        console.log("释放技能");
+
+    }
+}
+
+class MyHero extends Hero {
+    constructor(name) {
+        super(name);
+    }
+    fire() {
+        super.fire()
+        // 造成伤害
+        console.log("造成100点伤害");
+    }
+}
+let yase = new MyHero("亚瑟")
+yase.fire()
+
+
+//装饰器
+function Hurt() {
+    console.log("造成200点伤害");
+}
+Function.prototype.Decorator = function (fn) {
+    this();
+    fn()
+}
+
+let luban = new Hero("鲁班");
+// luban.fire();
+luban.fire.Decorator(Hurt)
+~~~
+
