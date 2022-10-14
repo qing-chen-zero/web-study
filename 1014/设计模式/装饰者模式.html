@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>装饰者模式</title>
+</head>
+<body>
+
+    <script>
+        // @ 装饰器  需要配置webpack环境
+        class Hero {
+            constructor(name) {
+                this.name = name;
+            }
+            fire() {
+                console.log("释放技能");
+                
+            }
+        }
+
+        class MyHero extends Hero {
+            constructor(name) {
+                super(name);
+            }
+            fire() {
+                super.fire()
+                // 造成伤害
+                console.log("造成100点伤害");
+            }
+        }
+        let yase = new MyHero("亚瑟")
+        yase.fire()
+
+
+        //装饰器
+        function Hurt() {
+            console.log("造成200点伤害");
+        }
+        Function.prototype.Decorator = function (fn) {
+            this();
+            fn()
+        }
+
+        let luban = new Hero("鲁班");
+        // luban.fire();
+        luban.fire.Decorator(Hurt)
+    </script>
+</body>
+</html>

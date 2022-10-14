@@ -2,7 +2,7 @@
 import Game from "./game.js";
 let game = new Game();
 
-document.querySelector(".login_btn").onclick = function (){
+document.querySelector(".login_btn").onclick = function () {
     let username = document.querySelector("#username").value;
     if (username != "") {
         game.login(username)
@@ -11,6 +11,15 @@ document.querySelector(".login_btn").onclick = function (){
         document.querySelector(".game").style.display = "flex";
         document.querySelector(".user").innerHTML = username
         renderHero(game.player.heroes);
+        let btns = document.querySelectorAll(".select_option button")
+        btns[0].onclick = function () {
+            document.querySelector(".select_skin").style.display = "none";
+            document.querySelector(".select_hero").style.display = "flex";
+        }
+        btns[1].onclick = function () {
+            document.querySelector(".select_skin").style.display = "flex";
+            document.querySelector(".select_hero").style.display = "none";
+        }
     } else {
         alert("请输入用户名");
     }
@@ -25,7 +34,7 @@ function renderHero(heroes) {
         hero.innerHTML = `<img src="${item.icon}" alt="" class="hero_icon"><span>${item.name}</span>`
         document.querySelector(".select_hero").appendChild(hero);
         //点击英雄，渲染数据
-        hero.onclick = function(e) {
+        hero.onclick = function (e) {
             // 倒计时30秒  TODO: 
             // let time = 30;
             // let timer = document.querySelector(".time");
@@ -47,15 +56,36 @@ function renderHero(heroes) {
             // 获取默认选择英雄图标
             let select_hero_icon = document.querySelector(".select_hero_icon");
             select_hero_icon.src = item.icon
+            //渲染皮肤数据
+            renderSkins(item.skins)
+            //自动切换到皮肤选择界面
+            document.querySelector(".select_skin").style.display = "flex";
+            document.querySelector(".select_hero").style.display = "none";
 
-            
+        }
+    });
+}
+
+// 渲染皮肤
+function renderSkins(skins) {
+    document.querySelector(".select_skin").innerHTML = ""
+    skins.forEach(item => {
+        //创建皮肤节点
+        let skin = document.createElement("div")
+        skin.classList.add("skin");
+        skin.innerHTML = `<img src="${item.icon}" alt="" class="skin_icon">
+                          <span>${item.name}</span>`;
+        document.querySelector(".select_skin").appendChild(skin);
+        // 点击皮肤，切换主体图片
+        skin.onclick = function (){
+            let select_hero_main = document.querySelector(".hero_main");
+            select_hero_main.src = item.mainImg;
         }
     });
 }
 
 //渲染技能
 function renderSkills(skills) {
-
     document.querySelector("#hero_skills").innerHTML = ""
     skills.forEach(item => {
         let skill = document.createElement("img")
@@ -63,12 +93,3 @@ function renderSkills(skills) {
         document.querySelector("#hero_skills").appendChild(skill);
     })
 }
-
-// let hero_list = document.querySelectorAll(".hero");
-// console.log(hero_list);
-
-// [...hero_list].forEach(item => {
-//     item.onclick = function (e) {
-//         console.log(e);
-//     }
-// })

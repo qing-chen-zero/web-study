@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>观察者模式</title>
+</head>
+
+<body>
+    <button class="btn">点击</button>
+
+    <script>
+
+        const fn1 = function () {
+            console.log("fn1");
+        }
+        const fn2 = function () {
+            console.log("fn2");
+        }
+        
+        // // 系统自带的click
+
+        // document.querySelector(".btn").addEventListener("click", fn1) // 如果写成fn() 函数就自动执行
+        // document.querySelector(".btn").addEventListener("click", fn2) // 如果写成fn() 函数就自动执行
+
+
+        // 自定义事件
+        let handles = {};
+        // 注册事件
+        function addEvent(eventName, fn) {
+            if (typeof handles[eventName] === "undefined") {
+                handles[eventName] = [];
+            }
+            handles[eventName].push(fn);
+        }
+
+        function trigger (eventName) {
+            if (typeof handles[eventName] === "undefined") {
+                return ;
+            }
+            handles[eventName].forEach(fn => {
+                fn();
+            });
+        }
+
+
+        addEvent("myevent", fn1);
+        addEvent("myevent", fn2);
+        trigger("myevent")
+    </script>
+</body>
+
+</html>

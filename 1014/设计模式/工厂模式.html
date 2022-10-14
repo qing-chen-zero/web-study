@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工厂模式</title>
+</head>
+<body>
+    
+    <script>
+
+        function Factory() {
+            let obj = {}
+            obj.name = "张三";
+            obj.age = 20;
+            //出厂
+            return obj;
+
+        }
+        let object = Factory()
+        console.log(object);
+
+        class Luban {
+            constructor () {
+                this.name = "鲁班"
+            }
+        }
+        class Yase {
+            constructor () {
+                this.name = "亚瑟"
+            }
+        }
+        class Wangzhaojun {
+            constructor () {
+                this.name = "王昭君"
+            }
+        }
+
+        function fac(name){
+            switch(name) {
+                case 'yase' :
+                    return new Yase();
+                    break;
+                case 'luban' :
+                    return new Luban();
+                    break;
+                case 'wangzhaojun' :
+                    return new Wangzhaojun();
+                    break;    
+            }
+        }
+        console.log(fac("luban"));
+    </script>
+</body>
+</html>

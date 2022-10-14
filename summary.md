@@ -420,3 +420,66 @@ document.onclick = async function() {
 }
 ~~~
 
+# 设计模式
+
+## 设计原则
+
+###　单一原则
+
+### 开闭原则
+
+· 对内是封闭、对外扩展开放
+
+## 设计模式
+
+· 设计模式∶是软件开发人员在软件开发过程中面临的一些具有代表性问题的解决方案。这些解决方案是众多软件开发人员经过相当长的一段时间的试验和错误总结出来的
+
+### 单例模式
+
+·一个实例 （jq --> $）
+
+~~~ javascript
+class Person {
+    static instance = null;
+    constructor(name) {
+        if (Person.instance) {
+            return Person.instance;
+        }
+        Person.instance = this
+        this.name = name
+    }
+}
+let zhangsan = new Person("张三");
+let lisi = new Person("里斯");
+console.log(zhangsan, lisi);
+
+// 模块化效果
+// single.js
+class Person {
+    // static instance = null;
+    constructor(name) {
+        // if (Person.instance) {
+        //     return Person.instance;
+        // }
+        // Person.instance = this
+        this.name = name
+    }
+}
+let instance;
+
+export default function createInstance(arg){
+    if (!instance) {
+        instance = new Person(arg);
+    }
+    return instance;
+}
+
+// js 调用
+console.log(new Person("张三"));
+console.log(new Person("里斯"));
+
+// 输出
+Person {name: '张三'}
+Person {name: '张三'}
+~~~
+
