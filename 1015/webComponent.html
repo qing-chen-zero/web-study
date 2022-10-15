@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原生组件</title>
+</head>
+<body>
+    <!-- <span></span>
+    <p></p>
+    <img src="" alt=""> -->
+
+    <img src="" alt="" is="my-img">
+
+    <my-com></my-com>
+    <script>
+
+        // 继承HTML的组件；
+        class MyImg extends HTMLImageElement {
+            constructor() {
+                super();
+                console.log(this);
+                setTimeout( () => {
+                    this.src = "https://source.unsplash.com/1920x1080/?nature,water,1";
+                }, 2000)
+            }
+        }
+        customElements.define("my-img", MyImg, {
+            extends : "img"
+        })
+
+        // 自定义组件
+        class MyCom extends HTMLElement {
+            constructor() {
+                super();
+                console.log(this);
+                this.innerHTML = "<button>按钮</button>";
+            }
+
+        }
+        customElements.define("my-com", MyCom)
+    </script>
+</body>
+</html>

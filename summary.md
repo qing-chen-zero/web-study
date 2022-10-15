@@ -571,3 +571,412 @@ let luban = new Hero("鲁班");
 luban.fire.Decorator(Hurt)
 ~~~
 
+# 封装组件
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组件封装</title>
+    <style>
+      .k-dialog {
+        width: 30%;
+        z-index: 20001;
+        display: block;
+        position: absolute;
+        background: #fff;
+        border-radius:  2px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+        margin: 0 auto;
+        top: 15vh;
+        left: 30%;
+      }
+      .k-wrapper {
+        position: fixed;
+        left: 0px;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        background: black;
+        opacity: .4;
+        z-index: 20000;
+      }
+      .k-header {
+        padding: 20px 20px 10px;
+      }
+      .k-header .k-title {
+        line-height: 24px;
+        font-size: 18px;
+        color: #303133;
+        float: left;
+      }
+      .k-body {
+        padding: 30px 20px;
+        color: #606266;
+        font-size: 14px;
+      }
+      .k-footer {
+        padding: 10px 20px 30px;
+        text-align: right;
+      }
+      .k-close {
+        color:  #909399;
+        font-weight: 400;
+        float: right;
+        cursor: pointer;
+      }
+      .k-cancel {
+        color: #606266;
+        border: 1px solid #dcdfe6;
+        text-align: center;
+        cursor: pointer;
+        padding: 12px 20px;
+        font-size: 14px;
+        border-radius: 4px;
+        font-weight: 500;
+        margin-right: 10px;
+      }
+      .k-cancel:hover {
+        color: #409eff;
+        background: #ecf5ff;
+        border-color: #c6e2ff;
+      }
+      .k-primary {
+        border: 1px solid #dcdfe6;
+        text-align: center;
+        cursor:pointer;
+        padding: 12px 20px;
+        font-size: 14px;
+        border-radius: 4px;
+        font-weight: 500;
+        background: #409eff;
+        color: #fff;
+        margin-left: 10px;
+      }
+      .k-primary:hover {
+        background: #66b1ff;
+      }
+      .k-input {
+        width: 100%;
+        margin-left: 20px;
+        margin-bottom: 20px;
+      }
+      .input-inner {
+        -webkit-appearance:none;
+        background-color:#fff;
+        background-image:none;
+        border-radius: 4px;
+        border: 1px solid #dcdfe6;
+        box-sizing: border-box;
+        color: #606266;
+        display: inline-block;
+        font-size: inherit;
+        height: 40px;
+        line-height: 40px;
+        outline: none;
+        padding: 0 15px;
+        transition: border-color .2s
+          cubic-bezier(.645, .045, .355, 1);
+        width: 100%;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <div class="k-wrapper"></div>
+<div class="k-dialog">
+<div class="k-header">
+<span class="k-title">提示</span>
+<span class="k-close">X</span>
+</div>
+<div class="k-body">
+<span>这是一段文本</span>
+<input type="text" class="input-inner" />
+</div>
+<div class="k-footer">
+<span class="k-cancel">取消</span>
+<span class="k-primary">确定</span>
+</div>
+</div> -->
+
+    <button class="btn">点击</button>
+    <button class="btn2">输入框</button>
+    <my-dialog
+               title="我的标题"
+               content="我的内容"
+               >自定义组件</my-dialog>
+
+    <script type="module">
+
+      // 原生组件 webComponent
+      import Dialog, {InputDialog} from "./dialog.js";
+
+      let dialog = new Dialog({
+        // 进行配置
+        title: "This is a title",
+        content: "Amazing",
+        isCancel: true,
+        maskable: true,
+        dragable: true,
+        // 自定义
+        success(e) {
+          console.log("===>>You are successing<<===", e.detail);
+        },
+        cancel() {
+          console.log("===>>You are canceling<<===");
+        }
+      })
+
+      document.querySelector(".btn").onclick = function() {
+        dialog.open();
+      }
+
+      // let obj1 = {
+      //     name: "张三",
+      //     height: "178cm"
+      // }
+      // let obj2 = {
+      //     name: "里斯",
+      //     height: "180cm"
+      // }
+      // // 合并参数以后面的为准
+      // let newObj =  Object.assign(obj1, obj2)
+      // console.log(newObj);
+
+      let dialog2 = new InputDialog({
+        success: function(e){
+          console.log("点击了输入框的Dialog", e);
+        }
+      })
+
+      document.querySelector(".btn2").onclick = function() {
+        dialog2.open();
+      }
+
+      document.querySelector("my-dialog").addEventListener("success", function(e) {
+        console.log("ee点击了确定ee");
+      })
+    </script>
+  </body>
+</html>
+~~~
+
+~~~ javascript
+import GameEvent from "../1013/模拟游戏/js/gameEvent.js";
+
+// 封装组件；
+export default class Dialog extends EventTarget { // 系统提供的事件  //GameEvent {  // 自定义的事件
+    constructor(opts) {
+        super();
+        // 合并配置参数
+        this.opts = Object.assign({
+            width: "30%",
+            height: "250px",
+            title: "测试标题",
+            content: "测试内容",
+            dragable: true, // 是否可拖拽
+            maskable: true, // 是否有遮罩
+            isCancel: false, // 是否可取消
+            success(){},
+            cancel(){}
+        }, opts);
+        console.log(this.opts);
+        this.init()
+    }
+
+    open() {
+        console.log("open....");
+        this.dialogEle.style.display = "block";
+    }
+    init() {
+        this.createHtml();
+        if (!this.opts.maskable) {
+            this.dialogEle.querySelector(".k-wrapper").style.display = "none";
+        }
+
+        // 绑定自定义事件
+        // this.addEvent("success", this.opts.success);
+        // 关联系统提供的事件
+        this.addEventListener("success", this.opts.success);
+
+
+        // 事件委托
+        this.dialogEle.querySelector(".k-dialog").addEventListener('click', e => {
+            switch (e.target.className) {
+                case "k-cancel":
+                    this.close();
+                    break;
+                case "k-primary":
+                    this.close();
+                    this.confirm();
+                    break;
+                case "k-close":
+                    this.close();
+                    break;
+            }
+        })
+
+        if (this.opts.dragable) this.dragable();
+
+    }
+    createHtml() {
+        let dialogEle = document.createElement("div");
+        dialogEle.style.display = "none";
+        dialogEle.innerHTML = `
+        <div class="k-wrapper"></div>
+        <div class="k-dialog" style="width:${this.opts.width};height:${this.opts.height}">
+            <div class="k-header">
+                <span class="k-title">${this.opts.title}</span>
+                <span class="k-close">X</span>
+            </div>
+            <div class="k-body">
+                <span>${this.opts.content}</span>
+            </div>
+            <div class="k-footer">
+                ${this.opts.isCancel ? '<span class="k-cancel">取消</span>' : ''}
+                <span class="k-primary">确定</span>
+            </div>
+        </div>
+        `
+        document.body.appendChild(dialogEle);
+        this.dialogEle = dialogEle
+    }
+
+    close() {
+        this.dialogEle.style.display = "none"; 
+    }
+
+    dragable() {
+        let kDialog = this.dialogEle.querySelector(".k-dialog")
+        kDialog.onmousedown = function(e) {
+            let x = e.clientX - kDialog.offsetLeft;
+            let y = e.clientY - kDialog.offsetTop;
+            kDialog.onmousemove = function(e) {
+                let xx = e.clientX;
+                let yy = e.clientY;
+                kDialog.style.left = xx - x + "px";
+                kDialog.style.top = yy - y + "px";
+            }
+            kDialog.onmouseup = function() {
+                kDialog.onmousemove = ""
+            }
+        }
+    }
+    // 点击确认 触发succe
+    confirm(value) {
+        // 触发自定义事件
+        // this.trigger("success");
+        // 使用系统提供的触发事件
+        this.dispatchEvent(new CustomEvent("success", {
+            detail: value
+        }));
+    }
+}
+
+
+export class InputDialog extends Dialog {
+    constructor(opts) {
+        super(opts);
+        this.createInput();
+    }
+    createInput() {
+        let myInput = document.createElement("input");
+        myInput.type = "text";
+        myInput.classList.add("input-inner");
+        this.dialogEle.querySelector(".k-body").appendChild(myInput);
+        this.myInput = myInput;
+    }
+    confirm() {
+        // console.log("点了InputDialog的确定");
+        console.log(this.myInput);
+        let value = this.myInput.value; 
+        // console.log(this.myInput);
+        super.confirm(value);
+    }
+}
+
+// 自定义组件
+class MyDialog extends HTMLElement {
+    constructor() {
+        super();
+        this.innerHTML = `<button>${this.innerText}</button>`;
+
+        let dialog = new Dialog({
+            // 进行配置
+            title: this.title,
+            content: this.content,
+            success:(e)=>{
+                this.dispatchEvent(new CustomEvent("success",{detail: e.detail}))
+            }
+        })
+
+        this.onclick = function() {
+            dialog.open()
+        }
+    }
+
+    // 通过get处理默认参数
+    get title() {
+        return this.getAttribute("title") ?? "默认标题"; 
+    }
+    get content() {
+        return this.getAttribute("content") ?? "默认内容";
+    }
+}
+
+customElements.define("my-dialog", MyDialog);
+~~~
+
+## 自定义组件
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原生组件</title>
+  </head>
+  <body>
+    <!-- <span></span>
+<p></p>
+<img src="" alt=""> -->
+
+    <img src="" alt="" is="my-img">
+
+    <my-com></my-com>
+    <script>
+
+      // 继承HTML的组件；
+      class MyImg extends HTMLImageElement {
+        constructor() {
+          super();
+          console.log(this);
+          setTimeout( () => {
+            this.src = "https://source.unsplash.com/1920x1080/?nature,water,1";
+          }, 2000)
+        }
+      }
+      customElements.define("my-img", MyImg, {
+        extends : "img"
+      })
+
+      // 自定义组件
+      class MyCom extends HTMLElement {
+        constructor() {
+          super();
+          console.log(this);
+          this.innerHTML = "<button>按钮</button>";
+        }
+
+      }
+      customElements.define("my-com", MyCom)
+    </script>
+  </body>
+</html>
+~~~
+

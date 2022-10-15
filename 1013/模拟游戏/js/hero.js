@@ -10,8 +10,13 @@ export default class Hero extends GameEvent {
         this.skills = skills ?? [],
         this.skins = skins ?? []
         this.addEvent("initFn", this.init);
+        this.addEvent("initFn", this.test);
+        this.removeEvent("initFn",this.test); // 删除指定的事件
     }
     init() {
         console.log("正在初始化...");
+    }
+    test() {
+        console.log("test remove...");
     }
 }
