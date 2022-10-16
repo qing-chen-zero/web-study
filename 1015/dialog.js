@@ -5,17 +5,45 @@ export default class Dialog extends EventTarget { // 系统提供的事件  //Ga
     constructor(opts) {
         super();
         // 合并配置参数
-        this.opts = Object.assign({
-            width: "30%",
-            height: "250px",
-            title: "测试标题",
-            content: "测试内容",
-            dragable: true, // 是否可拖拽
-            maskable: true, // 是否有遮罩
-            isCancel: false, // 是否可取消
-            success(){},
-            cancel(){}
-        }, opts);
+        // 使用自定义 - 课程作业 20221016
+        let {
+            width = "30%",
+            height = "250px",
+            title = "测试标题",
+            content = "测试内容",
+            dragable = true, // 是否可拖拽
+            maskable = true, // 是否有遮罩
+            isCancel = false, // 是否可取消
+            success = () => { },
+            cancel = () => { }
+        } = opts;
+        this.opts = {
+            width,
+            height,
+            title,
+            content,
+            dragable,
+            maskable,
+            isCancel,
+            success,
+            cancel
+        }
+        // 方式二 let newObj = {...obj1, ...obj2};
+        // 方式三 for in
+
+        // 使用assign自动合并
+
+        // this.opts = Object.assign({
+        //     width: "30%",
+        //     height: "250px",
+        //     title: "测试标题",
+        //     content: "测试内容",
+        //     dragable: true, // 是否可拖拽
+        //     maskable: true, // 是否有遮罩
+        //     isCancel: false, // 是否可取消
+        //     success() { },
+        //     cancel() { }
+        // }, opts);
         console.log(this.opts);
         this.init()
     }
@@ -79,21 +107,21 @@ export default class Dialog extends EventTarget { // 系统提供的事件  //Ga
     }
 
     close() {
-        this.dialogEle.style.display = "none"; 
+        this.dialogEle.style.display = "none";
     }
 
     dragable() {
         let kDialog = this.dialogEle.querySelector(".k-dialog")
-        kDialog.onmousedown = function(e) {
+        kDialog.onmousedown = function (e) {
             let x = e.clientX - kDialog.offsetLeft;
             let y = e.clientY - kDialog.offsetTop;
-            kDialog.onmousemove = function(e) {
+            kDialog.onmousemove = function (e) {
                 let xx = e.clientX;
                 let yy = e.clientY;
                 kDialog.style.left = xx - x + "px";
                 kDialog.style.top = yy - y + "px";
             }
-            kDialog.onmouseup = function() {
+            kDialog.onmouseup = function () {
                 kDialog.onmousemove = ""
             }
         }
@@ -125,7 +153,7 @@ export class InputDialog extends Dialog {
     confirm() {
         // console.log("点了InputDialog的确定");
         console.log(this.myInput);
-        let value = this.myInput.value; 
+        let value = this.myInput.value;
         // console.log(this.myInput);
         super.confirm(value);
     }
@@ -141,19 +169,19 @@ class MyDialog extends HTMLElement {
             // 进行配置
             title: this.title,
             content: this.content,
-            success:(e)=>{
-                this.dispatchEvent(new CustomEvent("success",{detail: e.detail}))
+            success: (e) => {
+                this.dispatchEvent(new CustomEvent("success", { detail: e.detail }))
             }
         })
 
-        this.onclick = function() {
+        this.onclick = function () {
             dialog.open()
         }
     }
 
     // 通过get处理默认参数
     get title() {
-        return this.getAttribute("title") ?? "默认标题"; 
+        return this.getAttribute("title") ?? "默认标题";
     }
     get content() {
         return this.getAttribute("content") ?? "默认内容";

@@ -980,3 +980,177 @@ customElements.define("my-dialog", MyDialog);
 </html>
 ~~~
 
+# 自定义封装库，实现Jquery的功能
+
+解析Jquery 中的$ 符号
+
+## 自定义JS库
+
+click 方法  --> 绑定一个节点 --> 绑定多个节点 --> 多种传入情况
+
+~~~ javascript
+// Jq类
+class Jq {
+    constructor(args) {
+        this.args = args;
+    };
+
+    // 把函数当成参数传入另一个函数，或者函数把函数当成返回参数， 高阶函数
+    click(fn) {
+        // console.log("clicking me",this.args);
+        fn();
+    }
+}
+
+
+
+// 实现$符号选择器
+function $(args) {
+    // return {
+    //     click() {
+    //         console.log("clicking me", args);
+    //     }
+    // }
+
+    return new Jq(args);
+}
+~~~
+
+### 通过原生方法进行执行
+
+~~~ javascript
+// Jq类
+class Jq {
+    constructor(args) {
+        // 通过传入参数 拿到 选择的节点
+        this.ele = document.querySelector(args);
+    };
+    // 把函数当成参数传入另一个函数，或者函数把函数当成返回参数， 高阶函数
+    click(fn) {
+        // 通过原生方法执行
+        this.ele.addEventListener("click", fn);
+    }
+}
+~~~
+
+### 获取一个节点 --> 获取多个节点
+
+~~~ javascript
+class Jq {
+ 	constructor(args) {
+        // 获取多个节点
+        let eles = document.querySelectorAll(args)
+        // this -> 就是一个对象 可通过不同的赋值 this[0] = eles[0] ... this[n] = eles[n]
+        // 使用循环的方式进行渲染
+        for (let i = 0; i < eles.length; i++) {
+            this[i] = eles[i];
+        }
+        // 挂载length
+        this.length = eles.length;
+    };   
+    click(fn) {
+        // 需要绑定多个
+        for (let i = 0; i < this.length; i++) {
+            this.addEvent(this[i],"click", fn);
+        }
+    }
+    // 添加事件监听的方法
+    addEvent(ele, eventName, fn) {
+        ele.addEventListener(eventName, fn);
+    }
+}
+
+~~~
+
+### 链式操作
+
+~~~ javascript
+// 案例一
+$(".box").click(()=> {
+    console.log("first click");
+}).on("click", function(){
+    console.log("second click");
+})
+
+// 通过return this 实现链式操作
+click(fn) {
+    for (let i = 0; i < this.length; i++) {
+        this.addEvent(this[i], "click", fn);
+    }
+    // 链式操作；
+    return this;
+}
+
+
+// 案例二 eq选择器
+$(".box").eq(1).click( function(){
+    console.log("this is eq selector click link-operate");
+})
+
+// 通过创建新的Jq对象，进行返回
+eq(index) {
+    // return this[index];
+    return new Jq(this[index])
+}
+~~~
+
+### CSS操作扩展
+
+~~~ JavaScript
+// css 处理
+css(...arg) {
+    if (arg.length === 1) {
+        // 1.字符串 2. 对象
+        // $(".box").css("background");
+        // $(".box").css({width:"300px; height:300px"});
+        if (typeof arg[0] === "object") {
+            // 对象  设置多个样式
+            for (let i = 0; i < this.length; i++) {
+                for (let j in arg[0]) {
+                    this.setStyle(this[i], j, arg[0][j])
+                }
+            }
+        } else {
+            // 字符串  获取样式
+            return this.getStyle(this[0], arg[0])
+        }
+    } else {
+        // 设置一个样式  多个节点
+        // $(".box").css("width","300px");
+        for (let i = 0; i < this.length; i++) {
+            this.setStyle(this[i], arg[0], arg[1]);
+        }
+    }
+}
+getStyle(ele, styleName) {
+    if (styleName in $.cssHooks) {
+        return $.cssHooks[styleName].get(ele);
+    }
+    return getComputedStyle(ele, null)[styleName];
+}
+setStyle(ele, styleName, styleValue) {
+    if (typeof styleValue === "number"  && !(styleName in $.cssNumber)) {
+        styleValue += "px"; 
+    }
+
+    if (styleName in $.cssHooks) {
+        $.cssHooks[styleName].set(ele, styleValue);
+    }
+    ele.style[styleName] = styleValue
+}
+
+
+// 设置扩展
+// 扩展
+$.cssHooks["wh"] = {
+    get(ele) {
+        return getComputedStyle(ele,null)["width"] + " " + getComputedStyle(ele,null)["height"];
+    },
+    set(ele, value) {
+        ele.style["width"] = value;
+        ele.style["height"] = value;
+    }
+}
+$(".box").css("wh","600px");
+~~~
+

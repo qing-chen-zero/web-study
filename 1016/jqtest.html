@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test-Jquery</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <style>
+        .box {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>原生Jquery</h1>
+    <div class="box">111</div>
+    <div class="box">222</div>
+    <script>
+        // JS 写法
+        // document.querySelector(".box").onclick = function() {
+        //     console.log("11111");
+        // }
+
+        // JQ 写法  情况一
+        // $(".box").click(()=> {
+        //     console.log("22222");
+        // })
+        // 情况二 传入函数 在所有加载完成时调用 获取完所有DOM节点
+        $(function() {
+            console.log("...ready...");
+        })
+        // 情况三 传入原生节点
+        // $(document.querySelector(".box")).click(()=> {
+        //     console.log("...click me ...");
+        // });
+        
+        $(".box").eq(1).end().click(function(){
+            console.log("sadhjkashjkwd");
+        })
+        
+
+        // 扩展
+        $.cssHooks["wh"] = {
+            get(ele) {
+                return getComputedStyle(ele,null)["width"] + " " + getComputedStyle(ele,null)["height"];
+            },
+            set(ele, value) {
+                ele.style["width"] = value;
+                ele.style["height"] = value;
+            }
+        }
+        $(".box").css("wh","400px");
+    </script>
+</body>
+</html>
