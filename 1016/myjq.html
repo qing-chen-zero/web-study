@@ -19,6 +19,7 @@
 
     <div class="box">111</div>
     <div class="box">222</div>
+    <button class="btn">click me</button>
     <script>
 
         // 管道 ==> 组合
@@ -58,21 +59,26 @@
         // let res = $(".box").css("background");
         // console.log(res);
         // 情况二
-        $(".box").css("width",300);
-        // 情况三
-        // $(".box").css({width:"300px" , height:"300px"});
+        // $(".box").css("width",300);
+        // // 情况三
+        // // $(".box").css({width:"300px" , height:"300px"});
 
-        // 扩展
-        $.cssHooks["wh"] = {
-            get(ele) {
-                return getComputedStyle(ele,null)["width"] + " " + getComputedStyle(ele,null)["height"];
-            },
-            set(ele, value) {
-                ele.style["width"] = value;
-                ele.style["height"] = value;
-            }
-        }
-        $(".box").css("wh","600px");
+        // // 扩展
+        // $.cssHooks["wh"] = {
+        //     get(ele) {
+        //         return getComputedStyle(ele,null)["width"] + " " + getComputedStyle(ele,null)["height"];
+        //     },
+        //     set(ele, value) {
+        //         ele.style["width"] = value;
+        //         ele.style["height"] = value;
+        //     }
+        // }
+        // $(".box").css("wh","600px");
+
+        $(".btn").click(()=> {
+            $(".box").animate({width:"500px"},2000);
+        })
+
     </script>
 </body>
 </html>

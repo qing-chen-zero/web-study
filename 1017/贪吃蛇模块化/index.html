@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+        #grade {
+            text-align: center;
+        }
+
+        #map {
+            position: relative;
+            height: 400px;
+            width: 400px;
+            background: #000;
+            margin: 0 auto;
+        }
+
+        #control {
+            height: 100px;
+            width: 400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #control span {
+            display: inline-block;
+            font-size: 50px;
+            cursor: pointer;
+        }
+
+        #contol_down span {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="grade">0</h1>
+    <div id="map"></div>
+    <div id="control">
+        <div id="control_up">
+            <span>⬆️</span>
+        </div>
+        <div id="contol_down">
+            <span>⬅️</span>
+            <span>⬇️</span>
+            <span>➡️</span>
+        </div>
+    </div>
+    <script type="module">
+        import Game from "./js/Game.js";
+        {
+            let map = document.querySelector("#map");
+            let game = new Game(map, 10);
+            let gradeEL = document.querySelector("#grade");
+            game.on("changeGrade", (grade) => {
+                gradeEL.innerHTML = grade;
+            })
+            document.onclick = function () {
+                if (!game.isOver()) {
+                    game.start();
+                }
+            }
+            game.on("win", () => {
+                alert("您胜利了！");
+            })
+            game.on("over", () => {
+                alert("游戏结束");
+            })
+
+            let buttons = document.querySelectorAll("#control span");
+            [...buttons].forEach((item, index) => {
+                item.onclick = () => {
+                    switch (index) {
+                        case 0:
+                            game.keyDown({ keyCode: 38 });
+                            break;
+                        case 1:
+                            game.keyDown({ keyCode: 37 });
+                            break;
+                        case 2:
+                            game.keyDown({ keyCode: 40 });
+                            break;
+                        case 3:
+                            game.keyDown({ keyCode: 39 });
+                            break;
+                    }
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

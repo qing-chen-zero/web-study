@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食物类</title>
+    <style>
+        #map {
+            position: relative;
+            height: 400px;
+            width: 400px;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        class Map {
+            constructor(el, rect = 10) {
+                this.el = el;
+                this.rect = rect;
+                this.data = [
+                    // {
+                    //     x:0,
+                    //     y:0,
+                    //     color: "red"
+                    // }
+                ]
+                this.rows = Math.ceil(Map.getStyle(el, "height") / rect);
+                this.cells = Math.ceil(Map.getStyle(el, "width") / rect);
+                Map.setStyle(el,"height", this.rows*rect);
+                Map.setStyle(el,"width", this.cells*rect);
+            }
+            // 静态方法 获取样式
+            static getStyle(el, attr) {
+                return parseFloat(getComputedStyle(el)[attr]);
+            }
+            // 静态方法 设置样式
+            static setStyle(el, attr, val) {
+                el.style[attr] = val + "px";
+            }
+            // 设置data
+            setData(newData) {
+                // this.data.push(newData) 如果类型不一样就有问题
+                this.data = this.data.concat(newData); // concat解决
+            }
+            // 清楚数据
+            clearData() {
+                this.data.length = 0;
+            }
+            // 是否包含数据
+            include({x,y}) {
+                // return this.data.some(item=>(item.x==x && item.y==y));
+                return !!this.data.find(item=>(item.x==x && item.y==y)); // 返回的是对象 反向再反向实现返回布尔值
+            }
+            // 渲染数据
+            render() {
+                this.el.innerHTML = this.data.map(item=> {
+                    return `<span style="position: absolute; left: ${item.x * this.rect}px; 
+                    top: ${item.y * this.rect}px; width: ${this.rect}px; height: ${this.rect}px; background: ${item.color};"></span>`;
+                }).join("");
+            }
+        }
+
+
+        // 食物类
+        class Food {
+            constructor(map, colors = ["red", "#fff", "yellow","pink", "blue"]) {
+                this.map = map;
+                this.data = null;
+                this.colors = colors;
+            }
+            // 创建食物
+            create() {
+                // 每次生成一个
+                let x = Math.floor(Math.random()*this.map.cells);
+                let y = Math.floor(Math.random()*this.map.rows);
+                let color = this.colors[parseInt(Math.random()*this.colors.length)];
+                this.data = {x,y,color};
+                if (this.map.include(this.data)) {
+                    this.create();
+                }
+            }
+        }
+
+        {
+            let map = document.querySelector("#map");
+            let gameMap = new Map(map, 40);
+            let gameFood = new Food(gameMap);
+            // setInterval(()=> {
+            //     gameFood.create();
+            //     gameMap.setData(gameFood.data);
+            //     gameMap.render();
+            // }, 200);
+            
+        }
+    </script>
+</body>
+</html>

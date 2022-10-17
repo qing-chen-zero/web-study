@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蛇类</title>
+    <style>
+        #map {
+            position: relative;
+            height: 400px;
+            width: 400px;
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        class Map {
+            constructor(el, rect = 10) {
+                this.el = el;
+                this.rect = rect;
+                this.data = [
+                    // {
+                    //     x:0,
+                    //     y:0,
+                    //     color: "red"
+                    // }
+                ]
+                this.rows = Math.ceil(Map.getStyle(el, "height") / rect);
+                this.cells = Math.ceil(Map.getStyle(el, "width") / rect);
+                Map.setStyle(el, "height", this.rows * rect);
+                Map.setStyle(el, "width", this.cells * rect);
+            }
+            // 静态方法 获取样式
+            static getStyle(el, attr) {
+                return parseFloat(getComputedStyle(el)[attr]);
+            }
+            // 静态方法 设置样式
+            static setStyle(el, attr, val) {
+                el.style[attr] = val + "px";
+            }
+            // 设置data
+            setData(newData) {
+                // this.data.push(newData) 如果类型不一样就有问题
+                this.data = this.data.concat(newData); // concat解决
+            }
+            // 清楚数据
+            clearData() {
+                this.data.length = 0;
+            }
+            // 是否包含数据
+            include({ x, y }) {
+                // return this.data.some(item=>(item.x==x && item.y==y));
+                return !!this.data.find(item => (item.x == x && item.y == y)); // 返回的是对象 反向再反向实现返回布尔值
+            }
+            // 渲染数据
+            render() {
+                this.el.innerHTML = this.data.map(item => {
+                    return `<span style="position: absolute; left: ${item.x * this.rect}px; 
+                    top: ${item.y * this.rect}px; width: ${this.rect}px; height: ${this.rect}px; background: ${item.color};"></span>`;
+                }).join("");
+            }
+        }
+
+
+        // 食物类
+        class Food {
+            constructor(map, colors = ["red", "#fff", "yellow", "pink", "blue"]) {
+                this.map = map;
+                this.data = null;
+                this.colors = colors;
+                this.create();
+            }
+            // 创建食物
+            create() {
+                // 每次生成一个
+                let x = Math.floor(Math.random() * this.map.cells);
+                let y = Math.floor(Math.random() * this.map.rows);
+                let color = this.colors[parseInt(Math.random() * this.colors.length)];
+                this.data = { x, y, color };
+                if (this.map.include(this.data)) {
+                    this.create();
+                }
+                this.map.setData(this.data);
+            }
+        }
+
+        // 蛇类
+        class Snake {
+            // 仅处理数据
+            constructor(map, food) {
+                this.data = [
+                    { x: 6, y: 4, color: "green" },
+                    { x: 5, y: 4, color: "white" },
+                    { x: 4, y: 4, color: "white" },
+                    { x: 3, y: 4, color: "white" },
+                    { x: 2, y: 4, color: "white" },
+                ]
+                this.map = map;
+                this.food = food;
+                this.map.setData(this.data);
+                this.direction = "right";
+            }
+            // 移动方法
+            move() {
+                let i = this.data.length - 1;
+                this.lastData = {
+                    x: this.data[i].x,
+                    y: this.data[i].y,
+                    color: this.data[i].color
+                }
+                for (i; i > 0; i--) {
+                    this.data[i].x = this.data[i - 1].x
+                    this.data[i].y = this.data[i - 1].y
+                }
+
+                /*
+                    让后面每一格都走到前一格的位置
+                */
+                // 根据方向移动
+                switch (this.direction) {
+                    case "left":
+                        this.data[0].x--;
+                        break;
+                    case "right":
+                        this.data[0].x++;
+                        break;
+                    case "up":
+                        this.data[0].y--;
+                        break;
+                    case "down":
+                        this.data[0].y++;
+                        break;
+                }
+            }
+
+            // 改变方向 如果蛇正在左右移动，则不能改变左右、 正在上下移动，则不能改变上下方向
+            changeDir(dir) {
+                if (this.direction === "left" || this.direction === "right") {
+                    if (dir === "left" || dir === "right") return false; // 此时不能修改方向              
+                } else {
+                    if (dir === "up" || dir === "dowm") return false;
+                }
+                this.direction = dir;
+                return true;
+            }
+
+            // 蛇吃到食物，应该变大
+            eatFood() {
+                this.data.push(this.lastData);
+            }
+        }
+
+        {
+            let map = document.querySelector("#map");
+            let gameMap = new Map(map, 10);
+            let gameFood = new Food(gameMap);
+            let gameSnake = new Snake(gameMap, gameFood);
+            gameMap.render();
+
+            setInterval(() => {
+                gameSnake.move();
+                gameMap.clearData();
+                gameMap.setData(gameSnake.data)
+                gameMap.render();
+            }, 200)
+
+            setTimeout(() => {
+                gameSnake.changeDir("down");
+                gameSnake.eatFood();
+            }, 2000);
+            setTimeout(() => {
+                gameSnake.changeDir("left");
+                gameSnake.eatFood();
+            }, 4000);
+            setTimeout(() => {
+                gameSnake.changeDir("up");
+                gameSnake.eatFood()
+            }, 6000);
+        }
+    </script>
+</body>
+
+</html>

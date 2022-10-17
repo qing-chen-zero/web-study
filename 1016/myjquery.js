@@ -65,7 +65,6 @@ class Jq {
         for (let i = 0; i < this.length; i++) {
             this.addEvent(this[i], "click", fn);
         }
-
         // 链式操作；
         return this;
     }
@@ -148,6 +147,23 @@ class Jq {
             $.cssHooks[styleName].set(ele, styleValue);
         }
         ele.style[styleName] = styleValue
+    }
+
+    // 设置animate函数
+    animate(properties, duration) {
+        for (let index = 0; index < this.length; index++) {
+            let ele = this[index];
+            ele.animate(properties,{duration: duration});
+        }
+        setTimeout(()=>{
+            for (let index = 0; index < this.length; index++) {
+                let ele = this[index];
+                for (const key in properties) {
+                    this.setStyle(ele,key, properties[key]);
+                }
+            }
+        }, duration)
+        
     }
 }
 

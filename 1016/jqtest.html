@@ -52,7 +52,18 @@
                 ele.style["height"] = value;
             }
         }
-        $(".box").css("wh","400px");
-    </script>
+        // $(".box").css("wh","400px");
+        $(".box").animate({width:"500px"}, 2000, ()=>{
+            console.log("completing...");
+        });
+
+        let obj = {
+            name: "aaa",
+            age : 20
+        }
+        for (item in obj) {
+            console.log(item, obj[item]);
+        }
+    </script> 
 </body>
 </html>

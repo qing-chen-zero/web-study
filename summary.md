@@ -1154,3 +1154,488 @@ $.cssHooks["wh"] = {
 $(".box").css("wh","600px");
 ~~~
 
+### 实现animate函数
+
+# 贪吃蛇项目
+
+## 模块划分
+
+### Map地图类
+
+		- clearData 清空数据
+		- setData 设置数据
+		- include 该坐标是否包含数据
+		- render 将数据渲染在地图元素上
+
+### Food 食物类
+
+- create 创建食物
+
+### Snake 蛇类
+
+- move 移动蛇
+- eatFood 吃食物
+
+### Game 游戏类
+
+- start 开始游戏
+- stop 暂停游戏
+- isOver 判断游戏是否结束
+- control 游戏控制器
+
+## Step First Map 类实现
+
+- parseFloat()  函数可解析一个字符串,并返回一个浮点数
+- Math.ceil() 向上取整
+- push() 把元素推进数组里
+- concat() 把元素都接受进去，不区分类型
+- some() 检测数组中的元素是否满足指定条件
+- find() 检测数组是否有该元素，返回对象 找不到返回undefined
+- map()  返回一个新的数组，数组中的元素为原始数组调用函数处理后的值
+- join() 就是将array数据中每个元素都转为字符串,用自定义的连接符分割 ("") 无缝连接 (" ") 空格连接
+
+~~~javascript
+class Map {
+  constructor(el, rect = 10) {
+    this.el = el;
+    this.rect = rect;
+    this.data = [
+      // {
+      //     x:0,
+      //     y:0,
+      //     color: "red"
+      // }
+    ]
+    this.rows = Math.ceil(Map.getStyle(el, "height") / rect);
+    this.cells = Math.ceil(Map.getStyle(el, "width") / rect);
+    Map.setStyle(el,"height", this.rows*rect);
+    Map.setStyle(el,"width", this.cells*rect);
+  }
+  static getStyle(el, attr) {
+    return parseFloat(getComputedStyle(el)[attr]);
+  }
+  static setStyle(el, attr, val) {
+    el.style[attr] = val + "px";
+  }
+  setData(newData) {
+    // this.data.push(newData) 如果类型不一样就有问题
+    this.data = this.data.concat(newData); // concat解决
+  }
+  clearData() {
+    this.data.length = 0;
+  }
+  include({x,y}) {
+    // return this.data.some(item=>(item.x==x && item.y==y));
+    return !!this.data.find(item=>(item.x==x && item.y==y)); // 返回的是对象 反向再反向实现返回布尔值
+  }
+  render() {
+    this.el.innerHTML = this.data.map(item=> {
+      return `<span style="position: absolute; left: ${item.x * this.rect}px; 
+                    top: ${item.y * this.rect}px; width: ${this.rect}px; height: ${this.rect}px; background: ${item.color};"></span>`;
+    }).join("");
+  }
+}
+{
+  let map = document.querySelector("#map");
+  let gameMap = new Map(map, 12);
+  gameMap.setData([
+    {
+      x: 0,
+      y: 10,
+      color: "green"
+    },
+    {
+      x: 1,
+      y: 10,
+      color: "#fff"
+    },
+    {
+      x: 2,
+      y: 10,
+      color: "#fff"
+    },
+    {
+      x: 3,
+      y: 10,
+      color: "#fff"
+    },
+
+  ])
+  // gameMap.clearData();
+  gameMap.setData([
+    {
+      x:10,
+      y:10,
+      color: "red"
+    }
+  ])
+  console.log(gameMap.include({x:10, y:20}));
+  gameMap.render();
+  console.log(gameMap);
+}
+~~~
+
+## Step Secone Food 类的实现
+
+~~~ javascript
+// 食物类
+class Food {
+  // 传入map对象， 随机生成的颜色数组（可不传）
+  constructor(map, colors = ["red", "#fff", "yellow","pink", "blue"]) {
+    this.map = map;
+    this.data = null;
+    this.colors = colors;
+  }
+  // 创建食物
+  create() {
+    // 每次仅生成一个
+    let x = Math.floor(Math.random()*this.map.cells); // x坐标
+    let y = Math.floor(Math.random()*this.map.rows); // y坐标
+    let color = this.colors[parseInt(Math.random()*this.colors.length)]; // 颜色
+    this.data = {x,y,color}; // 生成data
+    if (this.map.include(this.data)) { // 判断是否存在map中
+      this.create(); // 存在重新生成
+    }
+    this.map.setData(this.data);
+  }
+}
+~~~
+
+## Step Third Snake 类的实现
+
+- 需要初始生成一条蛇
+- 按照移动的方向进行移动 - switch 语句
+
+~~~ javascript
+// 蛇类
+class Snake {
+  // 仅处理数据
+  constructor(map, food) {
+    this.data = [
+      { x: 6, y: 4, color: "green" },
+      { x: 5, y: 4, color: "white" },
+      { x: 4, y: 4, color: "white" },
+      { x: 3, y: 4, color: "white" },
+      { x: 2, y: 4, color: "white" },
+    ]
+    this.map = map;
+    this.food = food;
+    this.map.setData(this.data);
+    this.direction = "right";  // 移动方向
+  }
+  move() {
+    let i = this.data.length - 1;
+    this.lastData = {
+      x: this.data[i].x,
+      y: this.data[i].y,
+      color: this.data[i].color
+    }
+    for (i; i > 0; i--) {
+      this.data[i].x = this.data[i - 1].x
+      this.data[i].y = this.data[i - 1].y
+    }
+
+    /*
+      让后面每一格都走到前一格的位置
+    */
+    // 根据方向移动
+    switch (this.direction) {
+      case "left":
+        this.data[0].x--;
+        break;
+      case "right":
+        this.data[0].x++;
+        break;
+      case "up":
+        this.data[0].y--;
+        break;
+      case "down":
+        this.data[0].y++;
+        break;
+    }
+  }
+}
+~~~
+
+## Step Fourth Snake 的方向移动实现
+
+- 蛇正在左右移动，不能改变左右方向
+- 蛇正在上下移动，不能改变上下方向
+
+~~~ javascript
+// 改变方向 如果蛇正在左右移动，则不能改变左右、 正在上下移动，则不能改变上下方向
+changeDir(dir) {
+  if (this.direction === "left" || this.direction === "right") {
+    if (dir === "left" || dir === "right") return false; // 此时不能修改方向              
+  } else {
+    if (dir === "up" || dir === "dowm") return false;
+  }
+  this.direction = dir;
+  return true;
+}
+~~~
+
+## Step Fifth Snake 实现吃的功能
+
+- 在移动方法中，添加一个获取最后一个节点的信息
+- 吃了就把该节点推进数组里
+
+~~~ javascript
+// 蛇吃到食物，应该变大
+// this.lastData 在move方法中 设置
+eatFood() {
+  this.data.push(this.lastData);
+}
+~~~
+
+## Step Sixth Game 类的初始化
+
+~~~ javascript
+// Game 类 -- 游戏控制类
+class Game {
+  constructor(el, rect) {
+    this.map = new Map(el, rect);
+    this.food = new Food(this.map);
+    this.snake = new Snake(this.map);
+    this.map.render();
+    this.timer = 0;
+    this.interval = 200;
+  }
+  // 开始游戏
+  start() {
+    this.move();
+  }
+  // 暂停游戏
+  stop() {
+    clearInterval(this.timer);
+  }
+  // 控制移动
+  move() {
+    this.stop();
+    this.timer = setInterval(() => {
+      this.snake.move();
+      this.map.clearData();
+      this.map.setData(this.snake.data);
+      this.map.setData(this.food.data);
+      this.map.render();
+    }, this.interval);
+  }
+  // 判断是否结束
+  isOver() {
+
+  }
+  // 游戏结束
+  over() {
+
+  }
+  // 游戏控制器
+  control() {
+
+  }
+} 
+~~~
+
+## Step Seventh 方向控制 以及 自定义方向控制
+
+- 使用switch 判断keydown的事件，获取用户输入了哪个键
+
+~~~ javascript
+// 重载constructor
+constructor(el, rect, toControl = null) {
+  this.map = new Map(el, rect);
+  this.food = new Food(this.map);
+  this.snake = new Snake(this.map);
+  this.map.render();
+  this.timer = 0;
+  this.interval = 200;
+  this.toControl = toControl;
+  this.keyDown = this.keyDown.bind(this); // 绑定this
+  this.control();
+}
+
+// keyDown 方法
+keyDown({ keyCode }) {
+  // console.log(keyCode);
+  let isDir;
+  switch (keyCode) {
+      // left
+    case 37:
+      isDir = this.snake.changeDir("left");
+      break;
+      // up
+    case 38:
+      isDir = this.snake.changeDir("up");
+      break;
+      // right
+    case 39:
+      isDir = this.snake.changeDir("right");
+      break;
+      // down
+    case 40:
+      isDir = this.snake.changeDir("down");
+      break;
+  }
+  console.log(isDir);
+}
+// 游戏控制器
+control() {
+  // 判断用户是否又自己的控制器
+  if (this.toControl) {
+    this.toControl();
+    return;
+  }
+  window.addEventListener("keydown", this.keyDown);
+}
+// 添加控制
+addControl(fn) {
+  fn.call(this);
+  // 移除已有的控制器
+  window.removeEventListener("keydown", this.keyDown);
+}
+
+// 自定义控制
+game.addControl(function(){
+  window.addEventListener("keydown", ({keyCode}) => {
+    // w => 87 上  d => 68 右  s => 83 下  a => 65 左
+    switch (keyCode) {
+        // left
+      case 65:
+        this.snake.changeDir("left");
+        break;
+        // up
+      case 87:
+        this.snake.changeDir("up");
+        break;
+        // right
+      case 68:
+        this.snake.changeDir("right");
+        break;
+        // down
+      case 83:
+        this.snake.changeDir("down");
+        break;
+    }
+  })
+})
+~~~
+
+## Step Eighth 检测吃食物
+
+~~~ javascript
+// 判断是否吃到食物
+isEat() {
+  return this.snake.data[0].x === this.food.data.x && this.snake.data[0].y === this.food.data.y;
+}
+// 添加分数
+let gradeEL = document.querySelector("#grade");
+game.toGrade = function(grade) {
+  gradeEL.innerHTML = grade;
+}
+document.onclick = function () {
+  game.start();
+}
+// 控制移动
+move() {
+  this.stop();
+  this.timer = setInterval(() => {
+    this.snake.move();
+    this.map.clearData();
+    if (this.isEat()) {
+      this.grade++;
+      this.snake.eatFood();
+      this.food.create();
+      this.changeGrade(this.grade);
+      this.interval *= 0.99; // 设置移动速度
+      this.stop();
+      this.start();
+    }
+    this.map.setData(this.snake.data);
+    this.map.setData(this.food.data);
+    this.map.render();
+  }, this.interval);
+}
+
+<div id="map"></div>
+~~~
+
+## Step Nineth 判断游戏是否结束
+
+- 蛇撞墙
+- 蛇撞到自生
+- 达到指定分数
+
+~~~ javascript
+// 判断是否结束
+isOver() {
+  // 判断蛇出了地图
+  if (this.snake.data[0].x < 0
+      || this.snake.data[0].x >= this.map.cells
+      || this.snake.data[0].y < 0
+      || this.snake.data[0].y >= this.map.rows) {
+    return true;
+  }
+  // 判断蛇装到了自己
+  for (let i = 1; i < this.snake.data.length; i++) {
+    if (this.snake.data[0].x === this.snake.data[i].x
+        && this.snake.data[0].y === this.snake.data[i].y) {
+      return true;
+    }
+  }
+  return false; // 没装
+}
+// 游戏结束
+// overStatus = 0 中间停止，完死了  1 游戏胜利
+over(overStatus = 1) {
+  if (overStatus) {
+    this.toWin && this.toWin();
+  } else {
+    this.toOver && this.toOver();
+  }
+  this.stop();
+}
+// 游戏结束
+game.toOver = function () {
+  alert("游戏结束")
+}
+// 游戏胜利
+game.toWin = function () {
+  alert("您胜利了！");
+}
+
+  ---- move 方法更新 ----
+move() {
+  this.stop();
+  this.timer = setInterval(() => {
+    this.snake.move();
+    this.map.clearData();
+    if (this.isEat()) {
+      this.grade++;
+      this.snake.eatFood();
+      this.food.create();
+      this.changeGrade(this.grade);
+      this.interval *= 0.95; // 加速
+      this.stop();
+      this.start();
+      if (this.grade >= 5) {
+        this.over(1);
+      }
+    }
+    if(this.isOver()) {
+      this.over(0);
+      return;
+    }
+    this.map.setData(this.snake.data);
+    this.map.setData(this.food.data);
+    this.map.render();
+  }, this.interval);
+}
+~~~
+
+## Step Tenth 整合游戏 总结
+
+- 拆解类  单一原则
+- 低耦合/高内聚
+- 
+
+
+
