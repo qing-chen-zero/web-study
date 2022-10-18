@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式</title>
+</head>
+<body>
+    <h1>匹配模式</h1>
+    <div id="res"></div>
+    <script>
+        let result = document.querySelector("#res")
+        // 匹配模式
+        // g i m s u y;
+        
+        // g : 全局匹配
+        let str = "213assd124qwadfsaz1231";
+        let reg = /[0-9]/;  // 2
+        reg = /[0-9]/g;  // 2,1,3,1,2,4,1,2,3,1
+        reg = /[0-9]{3}/g;  //213,124,123
+        reg = /\d+/; // 213
+        reg = /\d+/g; // 213,124,1231
+
+        result.innerHTML = str.match(reg); 
+
+        // i : 忽略大小写
+        str = "abcABc";
+        reg = /ABC/g;  // false
+        reg = /ABC/gi; // true
+        result.innerHTML = reg.test(str);
+
+        // m : 多行模式
+        str = `abc
+efg
+hij`;
+
+        reg = /^\w/g;   // *bc efg hij
+        console.log(str.replace(reg, "*")); 
+        result.innerHTML = str.replace(reg, "*"); 
+        
+        reg = /^\w/gm;  // *bc *fg *ij
+        result.innerHTML = str.replace(reg, "*"); 
+
+        // s : 让.匹配到换行
+        str = `abcefg`;
+        reg = /^a.*g$/g;  // true
+        str = `abc
+efg`;
+        reg = /^a.*g$/g;  // false
+        reg = /^a.*g$/gs;  // true
+        result.innerHTML = reg.test(str);
+
+        // u : 让正则匹配unicode编码
+        str = "a";
+        reg = /\u{61}/g;  //false
+        reg = /\u{61}/gu;  //true
+        result.innerHTML = reg.test(str);
+
+        // y : 粘性模式
+        str = "12345gdasfads42456";
+        reg = /\d/g;
+        result.innerHTML = "</br>" + reg.exec(str); //1
+        result.innerHTML += "</br>" + reg.exec(str);//2
+        result.innerHTML += "</br>" + reg.exec(str);//3
+        result.innerHTML += "</br>" + reg.exec(str);//4
+        result.innerHTML += "</br>" + reg.exec(str);//5
+        result.innerHTML += "</br>" + reg.exec(str);//4
+        result.innerHTML += "</br>" + reg.exec(str);//2 ...
+
+        reg = /\d/gy; // 后面必须也是 /d 数字 才能继续匹配
+        result.innerHTML += "</br>" + "下面是粘性模式"
+        result.innerHTML += "</br>" + reg.exec(str);//1
+        result.innerHTML += "</br>" + reg.exec(str);//2
+        result.innerHTML += "</br>" + reg.exec(str);//3
+        result.innerHTML += "</br>" + reg.exec(str);//4
+        result.innerHTML += "</br>" + reg.exec(str);//5
+        result.innerHTML += "</br>" + reg.exec(str);//null
+        result.innerHTML += "</br>" + reg.exec(str);//1 ...
+        result.innerHTML += "</br>" + reg.exec(str);//2
+        result.innerHTML += "</br>" + reg.exec(str);//3
+        result.innerHTML += "</br>" + reg.exec(str);//4
+        result.innerHTML += "</br>" + reg.exec(str);//5
+    </script>
+</body>
+</html>

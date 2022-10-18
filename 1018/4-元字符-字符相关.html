@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊字符</title>
+</head>
+
+<body>
+    <h1>元字符，有特殊字符</h1>
+    <h1>字符相关</h1>
+    <div id="one">
+
+    </div>
+    <h1>数量相关</h1>
+    <div id="two"></div>
+    <h1>位置相关</h1>
+    <div id="three"></div>
+    <h1>括号相关</h1>
+    <div id="four"></div>
+    <script>
+        let first = document.querySelector("#one");
+        let second = document.querySelector("#two");
+        let third = document.querySelector("#three");
+        let fourth = document.querySelector("#four");
+        // 元字符：有特殊函数，非字母字符；
+        /*
+            1.字符相关
+            2.数量相关
+            3.位置相关
+            4.括号相关
+         */
+
+        // 1.字符相关
+        // \w \W \d \D \s \S .
+        // \w: 匹配数字、字母、下划线；
+        // let str = "~213";
+        // let reg = /\w/g
+        // first.innerHTML = reg.test(str);
+
+        // \W: 匹配非（数字、字母、下划线）；
+        // let str = "213";
+        // let reg = /\W+/g;
+        // first.innerHTML = reg.test(str);
+
+        // \d 匹配数字
+        // \d 匹配非数字
+
+        // \s 匹配空格
+        // let str = "";
+        // let reg = /\s+/g;
+
+        // \S 匹配非空格
+        // let reg = /\S+/g;
+        // first.innerHTML = reg.test(str);
+        
+        //      回车 换行 段落结束符 行结束符
+        // . : 非 \n \r \u2028 \u2029
+        // let str = `afb`; // true
+        // let str = `a        
+        // b`;                 // false
+        // let reg = /a.b/;
+        // first.innerHTML = reg.test(str);
+
+
+    </script>
+</body>
+
+</html>

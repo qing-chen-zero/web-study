@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式</title>
+</head>
+<body>
+    <h1>命名分组及零宽断言</h1>
+    <div id="res"></div>
+    <script>
+        let res = document.querySelector("#res");
+
+        // 命名分组
+        let str = "2020-01-06";
+        let reg = /\d{4}-\d{2}-\d{2}/; //2020-01-06 未分组
+        reg = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/; //2020-01-06,2020,01,06 分组
+        res.innerHTML = str.match(reg);
+        console.log(str.match(reg));   //groups : {year: '2020', month: '01', day: '06'}  自定义分组
+
+        // 零宽断言
+        // 正向肯定零宽断言
+        str = "iphone3iphone4iphone5iphonenumber";
+        reg = /iphone\d/g       // 苹果苹果苹果iphonenumber
+        reg = /iphone(?=\d)/g  // 苹果3苹果4苹果5iphonenumber 
+        res.innerHTML = str.replace(reg, "苹果");
+
+        // 正向否定零宽断言
+        reg = /iphone(?!\d)/g  // iphone3iphone4iphone5苹果number
+        res.innerHTML = str.replace(reg, "苹果"); 
+
+        // 负向肯定零宽断言
+        str = "10px20px30pxipx";  // px --> 替换像素
+        reg = /\d+px/g;  // 像素像素像素ipx
+        reg = /(?<=\d+)px/g; // 10像素20像素30像素ipx
+        res.innerHTML = str.replace(reg, "像素"); 
+
+        // 负向否定零宽断言
+        reg = /(?<!\d+)px/g; // 10px20px30pxi像素
+        res.innerHTML = str.replace(reg, "像素");
+    </script>
+</body>
+</html>

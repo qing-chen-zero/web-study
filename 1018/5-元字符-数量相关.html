@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊字符</title>
+</head>
+
+<body>
+    <h1>元字符，有特殊字符</h1>
+    <h1>字符相关</h1>
+    <div id="one">
+
+    </div>
+    <h1>数量相关</h1>
+    <div id="two"></div>
+    <h1>位置相关</h1>
+    <div id="three"></div>
+    <h1>括号相关</h1>
+    <div id="four"></div>
+    <script>
+        let first = document.querySelector("#one");
+        let second = document.querySelector("#two");
+        let third = document.querySelector("#three");
+        let fourth = document.querySelector("#four");
+        // 元字符：有特殊函数，非字母字符；
+        /*
+            1.字符相关
+            2.数量相关
+            3.位置相关
+            4.括号相关
+         */
+
+        // 2. 数量相关 
+        // {} ? + *
+        let str = "abceeeeeeffd";
+        // let reg = /ceeef/g;
+        let reg = /ce{3}f/g;  // 这里的3只能是3次，多或者少都不行
+        second.innerHTML = reg.test(str);
+        
+        reg = /ce{1,4}f/g;    //  e 出现的次数只能是1～4次 [1,4]
+        second.innerHTML += reg.test(str);
+        reg = /ce{1,}f/g;     // e 出现的次数是 [1, +无穷]
+        second.innerHTML += reg.test(str);
+        
+        // ? --> {0,1}  + --> {1,}   * --> {0,}
+        str = "my name is lilei";
+        reg = /my\s?name/g;
+        second.innerHTML += "</br>" + reg.test(str);
+
+        str = "123456789";
+        reg = /\d{2,4}/g;   // 贪婪匹配  按照最多的次数匹配
+        reg = /\d{2,4}?/g;  // 惰性匹配  按照最低的次数匹配
+        second.innerHTML += "</br>" + str.match(reg);
+    </script>
+</body>
+
+</html>

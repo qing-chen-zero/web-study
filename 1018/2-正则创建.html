@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则创建</title>
+</head>
+<body>
+    <h1>正则表达式</h1>
+    <div id="res"></div>
+    <script>
+        let res = document.querySelector("#res");
+        // 1. 字面量创建
+        let str = "dsaw12321dnwaidsa8921321da";
+        // let reg = /\d+/g;  // g - 全局匹配
+        // let reg = /dnwaid/g; // 精确匹配  //之间就是一个字符串
+        // res.innerHTML = str.match(reg);
+
+        // 2.构造函数创建
+        // let reg = new RegExp("\d+","g"); // d,d,d,d
+        // let reg = new RegExp("\\d+","g"); // 需要进行转义字符 \\ 12321,8921321
+        // let reg = new RegExp("aid","g");  // 精确匹配
+        let temp = "aid"
+        let reg = new RegExp(temp, "g"); // 构造函数可以传字符串变量，但是字面量创建不可以实现传参，它只会识别为字符串
+        res.innerHTML = str.match(reg);
+    </script>
+</body>
+</html>

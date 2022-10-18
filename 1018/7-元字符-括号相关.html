@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式</title>
+</head>
+
+<body>
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>特殊字符</title>
+    </head>
+
+    <body>
+        <h1>元字符，有特殊字符</h1>
+        <h5>字符相关</h5>
+        <div id="one">
+
+        </div>
+        <h5>数量相关</h5>
+        <div id="two"></div>
+        <h5>位置相关</h5>
+        <div id="three"></div>
+        <h5>括号相关</h5>
+        <div id="four"></div>
+        <script>
+            let first = document.querySelector("#one");
+            let second = document.querySelector("#two");
+            let third = document.querySelector("#three");
+            let fourth = document.querySelector("#four");
+            // 元字符：有特殊函数，非字母字符；
+            /*
+                1.字符相关
+                2.数量相关
+                3.位置相关
+                4.括号相关
+             */
+
+            // 3. 括号相关
+            // () [] {};  {} 是描述出现的次数
+
+            // () 分组
+            let str = "abababfsadas";
+            let reg = /ababab/g;
+            fourth.innerHTML = reg.test(str); // true
+
+            reg = /ab{3}/g;
+            fourth.innerHTML += "</br>" + reg.test(str); // false  此次应该是匹配的abbb
+
+            reg = /(ab){3}/g;
+            fourth.innerHTML += "</br>" + reg.test(str); // true;
+            // () 提取值
+            str = "2020-01-02";
+            reg = /\d{4}-\d{2}-\d{2}/;
+            fourth.innerHTML += "</br>" + str.match(reg); //2020-01-02
+
+            reg = /(\d{4})-(\d{2})-(\d{2})/;
+            fourth.innerHTML += "</br>" + str.match(reg);
+            /*
+                0: "2020-01-02"
+                1: "2020"
+                2: "01"
+                3: "02"
+            */
+            console.log(str.match(reg));
+            console.log(RegExp.$1); // 2020   RegExp.$1 是与正则表达式匹配的第一个 子匹配(以括号为标志)字符串 总共可以有99个匹配
+            console.log(RegExp.$2); // 01
+            console.log(RegExp.$3); // 02
+
+            // () 替换
+            // 2020-01-02 改为 01/02/2020
+            fourth.innerHTML += "</br>" + str.replace(reg, "$2/$3/$1");  //01/02/2020
+            fourth.innerHTML += "</br>" + str.replace(reg, function (arg, year, month, day) {
+                return month + "/" + day + "/" + year
+            });   // 01/02/2020
+
+            // () 反向引用
+            let className = "news-container_nav"; //news_container_nav
+            // reg = /\w{4}(-|_)\w{9}(-|_)\w{3}/; //  true 
+            reg = /\w{4}(-|_)\w{9}(\1)\w{3}/;  // false  \1 引用之前第一个匹配的字符
+            fourth.innerHTML += "</br>" + reg.test(className);  // true
+
+            className = "news-container_nav_sda"; //news_container_nav
+            // reg = /\w{4}(-|_)\w{9}(-|_)\w{3}/; //  true 
+            reg = /\w{4}(-|_)\w{9}(-|_)\w{3}(\2)\w{3}/;  // false  \2 引用之前第二个匹配的字符
+            fourth.innerHTML += "</br>" + reg.test(className);  // true
+
+            // [] : 字符集合
+            str = "My name is LiLei";
+            reg = /Li(l|L)ei/;  // true
+            reg = /Li[lL]ei/;   // true  中括号不需要 ｜ 
+            reg = /[0-9]/g;     // fasle 改字符串没有数字  [a-z]  [A-Z] 闭区间
+            fourth.innerHTML += "</br>" + reg.test(str);  // true
+
+            reg = /[^0-9]/g; // 匹配非数字0-9
+            fourth.innerHTML += "</br>" + reg.test(str);  // true
+
+            // \d [0-9] \w [a-zA-Z0-9_];
+        </script>
+    </body>
+
+    </html>
+</body>
+
+</html>

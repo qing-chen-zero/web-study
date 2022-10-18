@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则匹配方法</title>
+</head>
+<body>
+    <h1>正则匹配方法</h1>
+    <div id="res"></div>
+    <script>
+        let res = document.querySelector("#res");
+        // 正则对象底下方法  1. test 2.exec
+        let str = "ad1sa2145asw1642bgcx";
+        let reg = /\d+/g;
+        // res.innerHTML = reg.test(str);  // test 匹配到了返回true 否则 false
+        
+        /*
+        res.innerHTML += "</br>" + reg.exec(str);  // exec 匹配可执行多次 和索引有关 lastIndex;
+        console.log(reg.lastIndex);
+        res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+        console.log(reg.lastIndex);
+        res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+        console.log(reg.lastIndex);
+        res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+        console.log(reg.lastIndex);
+        */
+        // 字符串方法 ： 1.split 2.search 3.match 4. replace;
+        res.innerHTML = str.split("1");
+        res.innerHTML = str.split(/\d+/);
+
+        res.innerHTML = str.search("1");
+        res.innerHTML = str.search(/c/); // 寻找下标  无则返回-1  并且仅只是找到第一个索引值
+
+        res.innerHTML = str.match(/\d+/);
+        res.innerHTML = str.match(/\d+/g); // match 可进行全局匹配
+
+        res.innerHTML = str.replace(/\d/g, "*");
+        res.innerHTML = str.replace(/\d/g, function(arg) {
+            console.log(arg); // 返回匹配到的字符串
+            return "*";
+        })
+
+    </script>
+</body>
+</html>

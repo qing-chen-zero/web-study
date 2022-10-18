@@ -1634,8 +1634,927 @@ move() {
 ## Step Tenth 整合游戏 总结
 
 - 拆解类  单一原则
+
 - 低耦合/高内聚
-- 
+
+- //TODO : 总结
+
+- 1. 首先分析游戏所需要的模型  
+     - Map 地图类 
+     - Snake 蛇类 
+     - Food 食物类 
+     - Game 游戏类
+     - Event 事件类
+
+  2. 抽离模型，低耦合（控制每个类仅做自己的事情）
+  3. 编写所需要的方法
+  4. 调用
+
+### Map 类
+
+~~~ javascript
+// Map 类
+export default class Map {
+  constructor(el, rect = 10) {
+    this.el = el;
+    this.rect = rect;
+    this.data = [
+      // {
+      //     x:0,
+      //     y:0,
+      //     color: "red"
+      // }
+    ]
+    this.rows = Math.ceil(Map.getStyle(el, "height") / rect);
+    this.cells = Math.ceil(Map.getStyle(el, "width") / rect);
+    Map.setStyle(el, "height", this.rows * rect);
+    Map.setStyle(el, "width", this.cells * rect);
+  }
+  // 静态方法 获取样式
+  static getStyle(el, attr) {
+    return parseFloat(getComputedStyle(el)[attr]);
+  }
+  // 静态方法 设置样式
+  static setStyle(el, attr, val) {
+    el.style[attr] = val + "px";
+  }
+  // 设置data
+  setData(newData) {
+    // this.data.push(newData) 如果类型不一样就有问题
+    this.data = this.data.concat(newData); // concat解决
+  }
+  // 清楚数据
+  clearData() {
+    this.data.length = 0;
+  }
+  // 是否包含数据
+  include({ x, y }) {
+    // return this.data.some(item=>(item.x==x && item.y==y));
+    return !!this.data.find(item => (item.x == x && item.y == y)); // 返回的是对象 反向再反向实现返回布尔值
+  }
+  // 渲染数据
+  render() {
+    this.el.innerHTML = this.data.map(item => {
+      return `<span style="position: absolute; left: ${item.x * this.rect}px; 
+            top: ${item.y * this.rect}px; width: ${this.rect}px; height: ${this.rect}px; background: ${item.color};"></span>`;
+    }).join("");
+  }
+}
+~~~
+
+### Snake 类
+
+~~~ javascript
+// 蛇类
+export default class Snake {
+  // 仅处理数据
+  constructor() {
+    this.data = [
+      { x: 6, y: 4, color: "green" },
+      { x: 5, y: 4, color: "white" },
+      { x: 4, y: 4, color: "white" },
+      { x: 3, y: 4, color: "white" },
+      { x: 2, y: 4, color: "white" },
+    ]
+    this.direction = "right";
+  }
+  // 移动方法
+  move() {
+    let i = this.data.length - 1;
+    this.lastData = {
+      x: this.data[i].x,
+      y: this.data[i].y,
+      color: this.data[i].color
+    }
+    for (i; i > 0; i--) {
+      this.data[i].x = this.data[i - 1].x
+      this.data[i].y = this.data[i - 1].y
+    }
+
+    /*
+            让后面每一格都走到前一格的位置
+        */
+    // 根据方向移动
+    switch (this.direction) {
+      case "left":
+        this.data[0].x--;
+        break;
+      case "right":
+        this.data[0].x++;
+        break;
+      case "up":
+        this.data[0].y--;
+        break;
+      case "down":
+        this.data[0].y++;
+        break;
+    }
+  }
+
+  // 改变方向 如果蛇正在左右移动，则不能改变左右、 正在上下移动，则不能改变上下方向
+  changeDir(dir) {
+    if (this.direction === "left" || this.direction === "right") {
+      if (dir === "left" || dir === "right") return false; // 此时不能修改方向              
+    } else {
+      if (dir === "up" || dir === "dowm") return false;
+    }
+    this.direction = dir;
+    return true;
+  }
+  // 蛇吃到食物，应该变大
+  eatFood() {
+    this.data.push(this.lastData);
+  }
+}
+~~~
+
+### Food 类
+
+~~~ javascript
+// 食物类
+export default class Food {
+  constructor(cells = 10, rows = 10, colors = ["red", "#fff", "yellow", "pink", "blue"]) {
+    this.cells = cells;
+    this.rows = rows;
+    this.data = null;
+    this.colors = colors;
+    this.create();
+  }
+  // 创建食物
+  create() {
+    // 每次生成一个
+    let x = Math.floor(Math.random() * this.cells);
+    let y = Math.floor(Math.random() * this.rows);
+    let color = this.colors[parseInt(Math.random() * this.colors.length)];
+    this.data = { x, y, color };
+  }
+}
+~~~
+
+### Game 类
+
+~~~ javascript
+// Game 类 -- 游戏控制类
+
+import Event from "./Event.js";
+import Snake from "./Snake.js";
+import Food from "./Food.js";
+import Map from "./Map.js";
+
+export default class Game extends Event {
+  constructor(el, rect) {
+    super();
+    this.map = new Map(el, rect);
+    this.food = new Food(this.map.cells, this.map.rows);
+    this.snake = new Snake();
+    this.map.setData(this.snake.data);
+    this.createFood();
+    this.render()
+    this.timer = 0;
+    this.interval = 200;
+    this.keyDown = this.keyDown.bind(this); // 绑定this
+    this.grade = 0;
+    this.control();
+  }
+  // 开始游戏
+  start() {
+    this.move();
+  }
+  // 暂停游戏
+  stop() {
+    clearInterval(this.timer);
+  }
+  // 控制移动
+  move() {
+    this.stop();
+    this.timer = setInterval(() => {
+      this.snake.move();
+      if (this.isEat()) {
+        this.grade++;
+        this.snake.eatFood();
+        this.createFood();
+        this.changeGrade(this.grade);
+        this.interval *= 0.95; // 加速
+        this.stop();
+        this.start();
+        if (this.grade >= 50) {
+          this.over(1);
+        }
+      }
+      if (this.isOver()) {
+        this.over(0);
+        return;
+      }
+      this.render();
+    }, this.interval);
+  }
+  // 判断是否吃到食物
+  isEat() {
+    return this.snake.data[0].x === this.food.data.x && this.snake.data[0].y === this.food.data.y;
+  }
+
+  // 判断是否结束
+  isOver() {
+    // 判断蛇出了地图
+    if (this.snake.data[0].x < 0
+        || this.snake.data[0].x >= this.map.cells
+        || this.snake.data[0].y < 0
+        || this.snake.data[0].y >= this.map.rows) {
+      return true;
+    }
+    // 判断蛇装到了自己
+    for (let i = 1; i < this.snake.data.length; i++) {
+      if (this.snake.data[0].x === this.snake.data[i].x
+          && this.snake.data[0].y === this.snake.data[i].y) {
+        return true;
+      }
+    }
+    return false; // 没装
+  }
+  // 游戏结束
+  // overStatus = 0 中间停止，完死了  1 游戏胜利
+  over(overStatus = 1) {
+    if (overStatus) {
+      // this.toWin && this.toWin();
+      this.dispatch("win");
+    } else {
+      // this.toOver && this.toOver();
+      this.dispatch("over");
+    }
+    this.stop();
+  }
+  keyDown({ keyCode }) {
+    // console.log(keyCode);
+    let isDir;
+    switch (keyCode) {
+        // left
+      case 37:
+        isDir = this.snake.changeDir("left");
+        break;
+        // up
+      case 38:
+        isDir = this.snake.changeDir("up");
+        break;
+        // right
+      case 39:
+        isDir = this.snake.changeDir("right");
+        break;
+        // down
+      case 40:
+        isDir = this.snake.changeDir("down");
+        break;
+    }
+  }
+  // 游戏控制器
+  control() {
+    // 判断用户是否又自己的控制器
+    if (this.toControl) {
+      this.toControl();
+      return;
+    }
+    window.addEventListener("keydown", this.keyDown);
+  }
+  // 添加控制
+  addControl(fn) {
+    fn.call(this);
+    // 移除已有的控制器
+    window.removeEventListener("keydown", this.keyDown);
+  }
+  // 分数改变
+  changeGrade(grade) {
+    this.dispatch("changeGrade", grade);
+  }
+  createFood() {
+    this.food.create();
+    if (this.map.include(this.food.data)) {
+      this.createFood();
+    }
+  }
+  // 向地图渲染数据
+  render() {
+    this.map.clearData();
+    this.map.setData(this.snake.data);
+    this.map.setData(this.food.data);
+    this.map.render();
+  }
+}
+~~~
+
+### Event 类
+
+~~~ javascript
+// Event 类
+export default class Event {
+  events = {}; // 事件池， 记录所有的相关事件及处理函数
+  on(eventName, fn) { // 添加一个事件处理
+    if (!this.events[eventName]) {
+      this.events[eventName] = [];
+    }
+    if (!this.events[eventName].includes(fn)) {
+      this.events[eventName].push(fn);
+    }
+  }
+  off(eventName, fun) {  // 删除一个事件处理
+    if (!this.events[eventName]) {
+      return;
+    }
+    this.events[eventName] = this.events[eventName].filter(item => item != fn);
+  }
+  dispatch(eventName, ...arg) {// 触发事件
+    if (!this.events[eventName]) {
+      return;
+    }
+    this.events[eventName].forEach(item => {
+      item.call(this, ...arg);
+    });
+  }
+}
+~~~
+
+### 游戏整合调用
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+      #grade {
+        text-align: center;
+      }
+
+      #map {
+        position: relative;
+        height: 400px;
+        width: 400px;
+        background: #000;
+        margin: 0 auto;
+      }
+
+      #control {
+        height: 100px;
+        width: 400px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      #control span {
+        display: inline-block;
+        font-size: 50px;
+        cursor: pointer;
+      }
+
+      #contol_down span {
+        margin: 0 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1 id="grade">0</h1>
+    <div id="map"></div>
+    <div id="control">
+      <div id="control_up">
+        <span>⬆️</span>
+      </div>
+      <div id="contol_down">
+        <span>⬅️</span>
+        <span>⬇️</span>
+        <span>➡️</span>
+      </div>
+    </div>
+    <script type="module">
+      import Game from "./js/Game.js";
+      {
+        let map = document.querySelector("#map");
+        let game = new Game(map, 10);
+        let gradeEL = document.querySelector("#grade");
+        game.on("changeGrade", (grade) => {
+          gradeEL.innerHTML = grade;
+        })
+        document.onclick = function () {
+          if (!game.isOver()) {
+            game.start();
+          }
+        }
+        game.on("win", () => {
+          alert("您胜利了！");
+        })
+        game.on("over", () => {
+          alert("游戏结束");
+        })
+
+        let buttons = document.querySelectorAll("#control span");
+        [...buttons].forEach((item, index) => {
+          item.onclick = () => {
+            switch (index) {
+              case 0:
+                game.keyDown({ keyCode: 38 });
+                break;
+              case 1:
+                game.keyDown({ keyCode: 37 });
+                break;
+              case 2:
+                game.keyDown({ keyCode: 40 });
+                break;
+              case 3:
+                game.keyDown({ keyCode: 39 });
+                break;
+            }
+          }
+        })
+      }
+    </script>
+  </body>
+
+</html>
+~~~
+
+# 正则表达式(Regular Expression)
+
+## 初识正则
+
+~~~ javascript
+// 1.查找 2.替换  3.验证 4.分割
+let str = "sd21ads21321sahdw2131diuwq213";
+
+function getNumber(str) {
+  let arr = [];
+  let temp = "";
+  for (let i = 0; i < str.length; i++) {
+    if (!isNaN(str[i])) {  // isNaN 判断是不是 不是数字
+      // 数字
+      temp += str[i];
+    } else {
+      if (temp != "")
+        arr.push(parseInt(temp));
+      temp = "";
+    }
+  }
+  if (temp != "")
+    arr.push(parseInt(temp));
+  return arr;
+}
+let result = document.querySelector("#result");
+result.innerHTML = getNumber(str);
+
+// 正则写法
+let reg = /\d+/g;
+result.innerHTML = "正则之后的结果：" + str.match(reg);
+
+// 两个结果都是一致的
+~~~
+
+## 正则表达式的创建
+
+### 字面量创建
+
+~~let temp = "dnwaid";~~
+
+~~let reg = /temp/g;~~ 
+
+~~~ javascript
+let str = "dsaw12321dnwaidsa8921321da";
+let reg = /\d+/g;  // g - 全局匹配
+let reg = /dnwaid/g; // 精确匹配  //之间就是一个字符串
+
+// 错误的使用
+let temp = "dnwaid";
+let reg = /temp/g; // 这里不会识别temp这个变量，仅仅会识别temp这个字符串
+~~~
 
 
+
+### 构造函数
+
+* 注意转义字符、可以传变量
+
+~~~ javascript
+let reg = new RegExp("\d+","g"); // d,d,d,d
+let reg = new RegExp("\\d+","g"); // 需要进行转义字符 \\ 12321,8921321
+let reg = new RegExp("aid","g");  // 精确匹配
+let temp = "aid"
+let reg = new RegExp(temp, "g"); // 构造函数可以传字符串变量，但是字面量创建不可以实现传参，它只会识别为字符串
+~~~
+
+## 正则匹配方法
+
+### 正则对象底下方法
+
+#### test
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+let reg = /\d+/g;
+// res.innerHTML = reg.test(str);  // test 匹配到了返回true 否则 false
+~~~
+
+#### exec
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+res.innerHTML += "</br>" + reg.exec(str);  // exec 匹配可执行多次 和索引有关 lastIndex;
+console.log(reg.lastIndex);
+res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+console.log(reg.lastIndex);
+res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+console.log(reg.lastIndex);
+res.innerHTML += "</br>" + reg.exec(str); // exec 匹配可执行多次 和索引有关 lastIndex;
+console.log(reg.lastIndex);
+~~~
+
+### 字符串方法
+
+#### split
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+res.innerHTML = str.split("1");  // ad,sa2,45asw,642bgcx  以1分割
+res.innerHTML = str.split(/\d+/); // ad,sa,asw,bgcx 以数字分割
+~~~
+
+#### search
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+res.innerHTML = str.search("1"); // 输出下标 2
+res.innerHTML = str.search(/c/); // 寻找下标 无则返回-1并且仅只是找到第一个索引值 输出18
+// 全局匹配失效
+~~~
+
+#### match
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+res.innerHTML = str.match(/\d+/); // 输出 1
+res.innerHTML = str.match(/\d+/g); // match 可进行全局匹配 输出 1,2145,1642
+~~~
+
+#### replace
+
+~~~ javascript
+let str = "ad1sa2145asw1642bgcx";
+res.innerHTML = str.replace(/\d/g, "*");  // ad*sa****asw****bgcx 替换
+res.innerHTML = str.replace(/\d/g, function(arg) {  // 回掉函数
+  console.log(arg); // 返回匹配到的字符串
+  return "*";
+})	
+~~~
+
+## 元字符 - 字符相关
+
+### 字符相关 \w \W \d \D \s \S .
+
+- \w : 匹配数字、字母、下划线
+  ~~~ javascript
+  \w: 匹配数字、字母、下划线；
+  let str = "~213";
+  let reg = /\w/g
+  first.innerHTML = reg.test(str); // true
+  ~~~
+
+  
+
+- \W : 匹配非（数字、字母、下划线）；
+
+  ~~~ javascript
+  \W: 匹配非（数字、字母、下划线）；
+  let str = "213";
+  let reg = /\W+/g;
+  first.innerHTML = reg.test(str); // false
+  ~~~
+
+  
+
+- \d : 匹配数字
+
+- \D : 匹配非数字
+
+- \s : 匹配空格
+
+  ~~~ javascript
+  let str = "";
+  let reg = /\s+/g;
+  reg.test(str); // false
+  ~~~
+
+  
+
+- \S : 匹配非空格
+
+  ~~~ javascript
+  let reg = /\S+/g;
+  first.innerHTML = reg.test(str);
+  ~~~
+
+  
+
+-  .  : 匹配非 \n \r \u2028 \u2029
+
+  ~~~ javascript
+  let str = `afb`; // true
+  let str = `a        
+  b`;                 // false
+  let reg = /a.b/;
+  first.innerHTML = reg.test(str);
+  ~~~
+
+### 数量相关 {} ? + *
+
+- {} 、 ？ 、 + 、*
+
+~~~ javascript
+let str = "abceeeeeeffd";
+// let reg = /ceeef/g;
+let reg = /ce{3}f/g;  // 这里的3只能是3次，多或者少都不行
+second.innerHTML = reg.test(str);
+
+reg = /ce{1,4}f/g;    //  e 出现的次数只能是1～4次 [1,4]
+second.innerHTML += reg.test(str);
+reg = /ce{1,}f/g;     // e 出现的次数是 [1, +无穷]
+second.innerHTML += reg.test(str);
+
+// ? --> {0,1}  + --> {1,}   * --> {0,}
+str = "my name is lilei";
+reg = /my\s?name/g;
+second.innerHTML += "</br>" + reg.test(str);
+
+
+str = "123456789";
+reg = /\d{2,4}/g;   // 贪婪匹配  按照最多的次数匹配
+reg = /\d{2,4}?/g;  // 惰性匹配  按照最低的次数匹配
+second.innerHTML += "</br>" + str.match(reg);
+~~~
+
+### 位置相关 ^ $ \b \B
+
+- ^ : 字符串开始的位置
+
+~~~ javascript
+// ^ $ \b \B
+// ^ 字符串开始的位置
+let str = "abedde"
+let reg = /^\w/g;   // *bedde
+// let reg = /^/g; // *abedde
+third.innerHTML = str.replace(reg, "*")
+~~~
+
+- $: 字符串结尾的位置
+
+~~~ javascript
+// $ 结尾的位置
+reg = /\w$/g;   // abedd*
+reg = /$/g;     // abedde*
+third.innerHTML += "</br>" + str.replace(reg,"*");
+~~~
+
+- \b : 边界符   边界： 非\w （数字、字母、下划线）都是边界
+
+~~~ javascript
+// \b 边界符
+// 边界： 非\w （数字、字母、下划线）都是边界
+str = "this is a book";
+reg = /is/g; // is,is
+reg = /\bis\b/g; // is  // 空格是边界的一种
+third.innerHTML += "</br>" + str.match(reg);
+str = "~love# me loveme";
+reg = /love/g; //love,love
+third.innerHTML += "</br>" + str.match(reg);
+reg = /\blove\b/g; //love
+third.innerHTML += "</br>" + str.match(reg);
+
+~~~
+
+- \B : 非边界
+
+~~~ javascript
+// \B 非边界
+str = "this is a book";
+reg = /\B\w{2}\b/g;
+third.innerHTML += "</br>" + str.match(reg); // is,ok
+~~~
+
+### 括号相关 () [] {}
+
+- () 分组 提取值 替换 反向引用
+
+~~~ javascript
+// () 分组
+let str = "abababfsadas";
+let reg = /ababab/g;
+fourth.innerHTML = reg.test(str); // true
+
+reg = /ab{3}/g;
+fourth.innerHTML += "</br>" + reg.test(str); // false  此次应该是匹配的abbb
+
+reg = /(ab){3}/g;
+fourth.innerHTML += "</br>" + reg.test(str); // true;
+// () 提取值
+str = "2020-01-02";
+reg = /\d{4}-\d{2}-\d{2}/;
+fourth.innerHTML += "</br>" + str.match(reg); //2020-01-02
+
+reg = /(\d{4})-(\d{2})-(\d{2})/;
+fourth.innerHTML += "</br>" + str.match(reg);
+/*
+                0: "2020-01-02"
+                1: "2020"
+                2: "01"
+                3: "02"
+            */
+console.log(str.match(reg));
+console.log(RegExp.$1); // 2020   RegExp.$1 是与正则表达式匹配的第一个 子匹配(以括号为标志)字符串 总共可以有99个匹配
+console.log(RegExp.$2); // 01
+console.log(RegExp.$3); // 02
+
+// () 替换
+// 2020-01-02 改为 01/02/2020
+fourth.innerHTML += "</br>" + str.replace(reg, "$2/$3/$1");  //01/02/2020
+fourth.innerHTML += "</br>" + str.replace(reg, function (arg, year, month, day) {
+  return month + "/" + day + "/" + year
+});   // 01/02/2020
+
+// () 反向引用
+let className = "news-container_nav"; //news_container_nav
+// reg = /\w{4}(-|_)\w{9}(-|_)\w{3}/; //  true 
+reg = /\w{4}(-|_)\w{9}(\1)\w{3}/;  // false  \1 引用之前第一个匹配的字符
+fourth.innerHTML += "</br>" + reg.test(className);  // true
+
+className = "news-container_nav_sda"; //news_container_nav
+// reg = /\w{4}(-|_)\w{9}(-|_)\w{3}/; //  true 
+reg = /\w{4}(-|_)\w{9}(-|_)\w{3}(\2)\w{3}/;  // false  \2 引用之前第二个匹配的字符
+fourth.innerHTML += "</br>" + reg.test(className);  // true
+~~~
+
+- [] 字符集合
+
+~~~ javascript
+// [] : 字符集合
+str = "My name is LiLei";
+reg = /Li(l|L)ei/;  // true
+reg = /Li[lL]ei/;   // true  中括号不需要 ｜ 
+reg = /[0-9]/g;     // fasle 改字符串没有数字  [a-z]  [A-Z] 闭区间
+fourth.innerHTML += "</br>" + reg.test(str);  // true
+
+reg = /[^0-9]/g; // 匹配非数字0-9
+fourth.innerHTML += "</br>" + reg.test(str);  // true
+
+// \d [0-9] \w [a-zA-Z0-9_];
+~~~
+
+- {} 字符出现次数
+
+## 匹配模式
+
+- g : 全局匹配
+
+~~~ javascript
+// g : 全局匹配
+let str = "213assd124qwadfsaz1231";
+let reg = /[0-9]/;  // 2
+reg = /[0-9]/g;  // 2,1,3,1,2,4,1,2,3,1
+reg = /[0-9]{3}/g;  //213,124,123
+reg = /\d+/; // 213
+reg = /\d+/g; // 213,124,1231
+
+result.innerHTML = str.match(reg); 
+~~~
+
+- i : 忽略大小写
+
+~~~ javascript
+// i : 忽略大小写
+str = "abcABc";
+reg = /ABC/g;  // false
+reg = /ABC/gi; // true
+result.innerHTML = reg.test(str);
+~~~
+
+- m : 多行模式
+
+~~~ javascript
+// m : 多行模式
+str = `abc
+efg
+hij`;
+
+reg = /^\w/g;   // *bc efg hij
+console.log(str.replace(reg, "*")); 
+result.innerHTML = str.replace(reg, "*"); 
+
+reg = /^\w/gm;  // *bc *fg *ij
+result.innerHTML = str.replace(reg, "*"); 
+~~~
+
+- s : 让.匹配到换行
+
+~~~ javascript
+// s : 让.匹配到换行
+str = `abcefg`;
+reg = /^a.*g$/g;  // true
+str = `abc
+efg`;
+reg = /^a.*g$/g;  // false
+reg = /^a.*g$/gs;  // true
+result.innerHTML = reg.test(str);
+~~~
+
+- u : 让正则匹配unicode编码
+
+~~~ javascript
+// u : 让正则匹配unicode编码
+str = "a";
+reg = /\u{61}/g;  //false
+reg = /\u{61}/gu;  //true
+result.innerHTML = reg.test(str);
+~~~
+
+- y : 粘性模式
+
+~~~ javascript
+// y : 粘性模式
+str = "12345gdasfads42456";
+reg = /\d/g;
+result.innerHTML = "</br>" + reg.exec(str); //1
+result.innerHTML += "</br>" + reg.exec(str);//2
+result.innerHTML += "</br>" + reg.exec(str);//3
+result.innerHTML += "</br>" + reg.exec(str);//4
+result.innerHTML += "</br>" + reg.exec(str);//5
+result.innerHTML += "</br>" + reg.exec(str);//4
+result.innerHTML += "</br>" + reg.exec(str);//2 ...
+
+reg = /\d/gy; // 后面必须也是 /d 数字 才能继续匹配
+result.innerHTML += "</br>" + "下面是粘性模式"
+result.innerHTML += "</br>" + reg.exec(str);//1
+result.innerHTML += "</br>" + reg.exec(str);//2
+result.innerHTML += "</br>" + reg.exec(str);//3
+result.innerHTML += "</br>" + reg.exec(str);//4
+result.innerHTML += "</br>" + reg.exec(str);//5
+result.innerHTML += "</br>" + reg.exec(str);//null
+result.innerHTML += "</br>" + reg.exec(str);//1 ...
+result.innerHTML += "</br>" + reg.exec(str);//2
+result.innerHTML += "</br>" + reg.exec(str);//3
+result.innerHTML += "</br>" + reg.exec(str);//4
+result.innerHTML += "</br>" + reg.exec(str);//5
+~~~
+
+## 命名分组及零宽断言
+
+### 命名分组
+
+(?<>)
+
+~~~ javascript
+let str = "2020-01-06";
+let reg = /\d{4}-\d{2}-\d{2}/; //2020-01-06 未分组
+reg = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/; //2020-01-06,2020,01,06 分组
+res.innerHTML = str.match(reg);
+console.log(str.match(reg));   //groups : {year: '2020', month: '01', day: '06'}  自定义分组
+~~~
+
+### 零宽断言
+
+#### 正向
+
+##### 肯定
+
+~~~ javascript
+str = "iphone3iphone4iphone5iphonenumber";
+reg = /iphone\d/g       // 苹果苹果苹果iphonenumber
+reg = /iphone(?=\d)/g  // 苹果3苹果4苹果5iphonenumber 
+res.innerHTML = str.replace(reg, "苹果");
+~~~
+
+##### 否定
+
+~~~ javascript
+// 正向否定零宽断言
+reg = /iphone(?!\d)/g  // iphone3iphone4iphone5苹果number
+res.innerHTML = str.replace(reg, "苹果"); 
+~~~
+
+#### 负向
+
+##### 肯定
+
+~~~ javascript
+// 负向肯定零宽断言
+str = "10px20px30pxipx";  // px --> 替换像素
+reg = /\d+px/g;  // 像素像素像素ipx
+reg = /(?<=\d+)px/g; // 10像素20像素30像素ipx
+res.innerHTML = str.replace(reg, "像素"); 
+~~~
+
+##### 否定
+
+~~~ javascript
+// 负向否定零宽断言
+reg = /(?<!\d+)px/g; // 10px20px30pxi像素
+res.innerHTML = str.replace(reg, "像素");
+~~~
 

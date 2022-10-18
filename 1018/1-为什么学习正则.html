@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式</title>
+</head>
+
+<body>
+    <h1>正则表达式</h1>
+    <div id="result">
+
+    </div>
+    <script>
+        // 1.查找 2.替换  3.验证 4.分割
+        let str = "sd21ads21321sahdw2131diuwq213";
+
+        function getNumber(str) {
+            let arr = [];
+            let temp = "";
+            for (let i = 0; i < str.length; i++) {
+                if (!isNaN(str[i])) {  // isNaN 判断是不是 不是数字
+                    // 数字
+                    temp += str[i];
+                } else {
+                    if (temp != "")
+                        arr.push(parseInt(temp));
+                    temp = "";
+                }
+            }
+            if (temp != "")
+                arr.push(parseInt(temp));
+            return arr;
+        }
+        let result = document.querySelector("#result");
+        result.innerHTML = getNumber(str);
+        
+        // 正则写法
+        let reg = /\d+/g;
+        result.innerHTML = "正则之后的结果：" + str.match(reg);
+    </script>
+</body>
+
+</html>
