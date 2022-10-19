@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <script>
+        let arr = ["a", "b", "c", "d"];
+
+        // 迭代对象 可被迭代对象 - 实现了[Symbol.iterator] -> 迭代器方法
+        // Object 中，没有迭代方法
+        let obj = {
+            a: 1,
+            b: 2,
+            c: 3
+        }
+        obj[Symbol.iterator] = function () {
+            // 迭代协议 每次都是走的next
+            let keys = Object.keys(obj);
+            let index = 0;
+
+            return {
+                next() {
+                    // return {
+                    //     // value: "", // 循环过程中的值
+                    //     // done: true // done 代表循环是否完成 true 已完成 false 未完成  
+                    // }
+                    if (index >= keys.length) {
+                        return {
+                            done: true
+                        }
+                    } else {
+                        return {
+                            value: {
+                                key: keys[index],
+                                value: obj[keys[index++]]
+                            },
+                            done : false
+                        }
+                    }
+                }
+            }
+        }
+        for (let val of obj) {
+            console.log(val);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box {
+            width: 100px;
+            height: 100px;
+            background: red;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+
+    </div>
+    <script>
+        let box = document.querySelector(".box");
+        // move(box,"left", 300);
+        // move(box,"top", 300);
+
+        // 1. 回调处理异步  回调地狱
+        // move(box, "left", 300, function() {
+        //     console.log("向右运动完成");
+        //     move(box, "top", 300 ,function() {
+        //         console.log("向下运动完成");
+        //         move(box, "left", 0, function() {
+        //             console.log("向左运动完成");
+        //             move(box, "top", 0, function() {
+        //                 console.log("向上运动完成");
+        //             })
+        //         })
+        //     })
+        // })
+
+        // move(box, "top", 300, function() {
+        //     console.log("向下运动完成");
+        // })
+
+        // function move(ele,direction, target, cb) {
+        //     let start = parseInt(ele.style[direction]) || 0;
+        //     let speed = Math.abs(target - start)/(target - start) * 5;
+        //     start += speed;
+        //     // console.log(start);  
+        //     setTimeout(() => {
+        //         if (start === target) {
+        //             // console.log("运动完成");
+        //             cb && cb();
+        //         } else {
+        //             ele.style[direction] = start + "px";
+        //             move(ele,direction,target, cb);
+        //         }
+        //     }, 20);
+        // }
+
+        // 2.自定义事件
+        // let myEventObj = new EventTarget();
+        // myEventObj.num = 1;
+
+        // function move(ele,direction, target) {
+        //     let start = parseInt(ele.style[direction]) || 0;
+        //     let speed = Math.abs(target - start)/(target - start) * 5;
+        //     start += speed;
+        //     // console.log(start);  
+        //     setTimeout(() => {
+        //         if (start === target) {
+        //             // console.log("运动完成");
+        //             // cb && cb();
+        //             myEventObj.dispatchEvent(new CustomEvent("myevent"+myEventObj.num));
+        //             myEventObj.num++;
+        //         } else {
+        //             ele.style[direction] = start + "px";
+        //             move(ele,direction,target);
+        //         }
+        //     }, 20);
+        // }
+
+        // move(box, "left", 300);
+        // myEventObj.addEventListener("myevent1", ()=> {
+        //     console.log("向右运动完成");
+        //     move(box,"top", 300);
+        // })
+        // myEventObj.addEventListener("myevent2",()=> {
+        //     console.log("向下运动完成");
+        //     move(box,"left",0);
+        // })
+        // myEventObj.addEventListener("myevent3",()=> {
+        //     console.log("向左运动完成");
+        //     move(box,"top",0);
+        // })
+        // myEventObj.addEventListener("myevent4",()=>{
+        //     console.log("向上运动完成");
+        // })
+
+        // 3. promise 
+        // function move(ele, direction, target) {
+        //     return new Promise(resolve => {
+        //         function redo() {
+        //             let start = parseInt(ele.style[direction]) || 0;
+        //             let speed = Math.abs(target - start) / (target - start) * 5;
+        //             start += speed;
+        //             setTimeout(() => {
+        //                 if (start === target) {
+        //                     resolve("完成运动")
+        //                 } else {
+        //                     ele.style[direction] = start + "px";
+        //                     redo();
+        //                 }
+        //             }, 20);
+        //         }
+        //         redo();
+        //     })
+        // }
+
+        // move(box, "left", 300).then(res=>{
+        //     console.log("运行1已完成");
+        //     return move(box, "top", 300);
+        // }).then(res=>{
+        //     console.log("运动2已完成");
+        //     return move(box,"left",0);
+        // }).then(res=>{
+        //     console.log("运动3已完成");
+        //     return move(box,"top",0);
+        // }).then(res=>{
+        //     console.log("运动4已完成");
+        // }).catch(err=>{
+        //     console.log(err);
+        // })
+
+        function move(ele, direction, target) {
+            return new Promise(resolve => {
+                function redo() {
+                    let start = parseInt(ele.style[direction]) || 0;
+                    let speed = Math.abs(target - start) / (target - start) * 5;
+                    start += speed;
+                    setTimeout(() => {
+                        if (start === target) {
+                            resolve("完成运动")
+                        } else {
+                            ele.style[direction] = start + "px";
+                            redo();
+                        }
+                    }, 20);
+                }
+                redo();
+            })
+        }
+        async function test() {
+            await move(box, "left", 300);
+            console.log("向右完成移动");
+            await move(box, "top", 300);
+            console.log("向下完成移动");
+            await move(box, "left", 0);
+            console.log("向左完成移动");
+            await move(box, "top", 0);
+            console.log("向上完成移动");
+        }
+        test();
+
+
+    </script>
+</body>
+
+</html>

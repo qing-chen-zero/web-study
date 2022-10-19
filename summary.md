@@ -2558,3 +2558,416 @@ reg = /(?<!\d+)px/g; // 10px20px30pxi像素
 res.innerHTML = str.replace(reg, "像素");
 ~~~
 
+# ES6 高阶
+
+## 迭代器
+
+- for of 循环使用的就是迭代器
+
+~~~ javascript
+let arr = ["a", "b", "c", "d"];
+
+// 迭代对象 可被迭代对象 - 实现了[Symbol.iterator] -> 迭代器方法
+// Object 中，没有迭代方法
+let obj = {
+  a: 1,
+  b: 2,
+  c: 3
+}
+obj[Symbol.iterator] = function () {
+  // 迭代协议 每次都是走的next
+  let keys = Object.keys(obj);
+  let index = 0;
+
+  return {
+    next() {
+      // return {
+      //     // value: "", // 循环过程中的值
+      //     // done: true // done 代表循环是否完成 true 已完成 false 未完成  
+      // }
+      if (index >= keys.length) {
+        return {
+          done: true
+        }
+      } else {
+        return {
+          value: {
+            key: keys[index],
+            value: obj[keys[index++]]
+          },
+          done : false
+        }
+      }
+    }
+  }
+}
+for (let val of obj) {
+  console.log(val);
+}
+
+
+~~~
+
+## Generator 方法	
+
+~~~ javascript
+function* fn() {
+  yield new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("a");
+      resolve(1);
+    }, 500)
+  });
+  yield new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("b");
+      resolve(2);
+    }, 500)
+  });
+  yield new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("c");
+      resolve(3);
+    }, 500)
+  });
+}
+// let f = fn();
+// console.log(f);
+// console.log(f.next());
+// console.log(f.next());
+// console.log(f.next());
+// ==> 
+// for (let val of f) {
+//     console.log(val);
+// }// 一次就执行完毕
+
+function co(fn) {
+  let f = fn();
+  next();
+  function next(data) {
+    let result = f.next();
+    if (!result.done) {
+      // 上一个异步走完了，在执行下一个异步
+      result.value.then((info)=>{
+        console.log(info,data);
+        next(info); 
+      })
+    }
+    // console.log(result);
+  }
+}
+co(fn);
+~~~
+
+## 同步异步
+
+### 通过回调，解决异步 一对一
+
+~~~ javascript
+function test(cb) {
+  setTimeout(() => {
+    console.log("test");
+    cb && cb();
+  }, 1000);
+}
+
+test(function() {
+  console.log("2222");
+})
+~~~
+
+### 自定义事件 一对多
+
+~~~ javascript
+let myEventObj = new EventTarget();
+
+
+function test() {
+  setTimeout(() => {
+    console.log("test");
+    myEventObj.dispatchEvent(new CustomEvent("myevent"));
+  }, 1000);
+}
+
+test();
+myEventObj.addEventListener("myevent",function(){
+  console.log("22222");
+})
+myEventObj.addEventListener("myevent",function(){
+  console.log("33333");
+})
+// test
+// 22222
+// 33333
+~~~
+
+### 使用回调处理异步 回调地狱
+
+~~~ javascript
+// 1. 回调处理异步  回调地狱
+move(box, "left", 300, function() {
+  console.log("向右运动完成");
+  move(box, "top", 300 ,function() {
+    console.log("向下运动完成");
+    move(box, "left", 0, function() {
+      console.log("向左运动完成");
+      move(box, "top", 0, function() {
+        console.log("向上运动完成");
+      })
+    })
+  })
+})
+
+function move(ele,direction, target, cb) {
+  let start = parseInt(ele.style[direction]) || 0;
+  let speed = Math.abs(target - start)/(target - start) * 5;
+  start += speed;
+  // console.log(start);  
+  setTimeout(() => {
+    if (start === target) {
+      // console.log("运动完成");
+      cb && cb();
+    } else {
+      ele.style[direction] = start + "px";
+      move(ele,direction,target, cb);
+    }
+  }, 20);
+}
+~~~
+
+### 通过自定义事件处理异步
+
+~~~ javascript
+// 2.自定义事件
+let myEventObj = new EventTarget();
+myEventObj.num = 1;
+
+function move(ele,direction, target) {
+  let start = parseInt(ele.style[direction]) || 0;
+  let speed = Math.abs(target - start)/(target - start) * 5;
+  start += speed;
+  // console.log(start);  
+  setTimeout(() => {
+    if (start === target) {
+      // console.log("运动完成");
+      // cb && cb();
+      myEventObj.dispatchEvent(new CustomEvent("myevent"+myEventObj.num));
+      myEventObj.num++;
+    } else {
+      ele.style[direction] = start + "px";
+      move(ele,direction,target);
+    }
+  }, 20);
+}
+
+move(box, "left", 300);
+myEventObj.addEventListener("myevent1", ()=> {
+  console.log("向右运动完成");
+  move(box,"top", 300);
+})
+myEventObj.addEventListener("myevent2",()=> {
+  console.log("向下运动完成");
+  move(box,"left",0);
+})
+myEventObj.addEventListener("myevent3",()=> {
+  console.log("向左运动完成");
+  move(box,"top",0);
+})
+myEventObj.addEventListener("myevent4",()=>{
+  console.log("向上运动完成");
+})
+~~~
+
+### Promise
+
+~~~ javascript
+// 三种状态 : resolved（fullfilled）、rejected、pending
+// then的2个参数 : onResolved, onRejected 
+// then => 3种返回值 
+let p1 = new Promise((resolve, reject) => {
+  resolve("value")
+  // reject("err")
+})
+
+// console.log(p1);
+
+// then的2个参数 : onResolved, onRejected 
+// p1.then((res)=>{
+//     // onResolved  成功
+//     console.log("成功", res);
+// }, err=>{
+//     // onRejected  失败
+//     console.log("失败了", err);
+// })
+
+// then => 3种返回值 
+// -1 没有任何返回，自动返回Promise 对象
+// -2 返回普通值，会包装成Promise对象，promiseValue的值是 返回的值
+// -3 返回Promise 直接返回新的Promise对象
+let res = p1.then(res=>{
+  return new Promise(resolve=>{
+    resolve("success")
+  })
+})
+res.then(res=>{
+  console.log(res);
+})
+console.log(res);
+
+
+// 加载图片 通过canvas 绘制 加载的图片
+function loadImg() {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.src = "https://img0.baidu.com/it/u=1345303087,1528317222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=1082"
+
+    img.onload = function () {
+      // 加载完成
+      resolve(img)
+    }
+    img.onerror = function () {
+      reject("图片加载失败")
+    }
+  })
+}
+// then 链式操作
+loadImg().then(res => {
+  drawImg(res);
+}, err => {
+  console.log(err);
+}).catch(e=>{ // 可通过catch捕获所有的错误
+  console.log(e); 
+})
+
+// 绘制图片
+function drawImg(img) {
+  const cavans = document.querySelector("#mycanvas");
+  const context = cavans.getContext("2d");
+  context.drawImage(img, 0, 0, 100, 100);
+}
+
+
+// 移动盒子
+// 3. promise 
+function move(ele, direction, target) {
+  return new Promise(resolve => {
+    function redo() {
+      let start = parseInt(ele.style[direction]) || 0;
+      let speed = Math.abs(target - start) / (target - start) * 5;
+      start += speed;
+      setTimeout(() => {
+        if (start === target) {
+          resolve("完成运动")
+        } else {
+          ele.style[direction] = start + "px";
+          redo();
+        }
+      }, 20);
+    }
+    redo();
+  })
+}
+
+move(box, "left", 300).then(res=>{
+  console.log("运行1已完成");
+  return move(box, "top", 300);
+}).then(res=>{
+  console.log("运动2已完成");
+  return move(box,"left",0);
+}).then(res=>{
+  console.log("运动3已完成");
+  return move(box,"top",0);
+}).then(res=>{
+  console.log("运动4已完成");
+}).catch(err=>{
+  console.log(err);
+})
+~~~
+
+### async-await
+
+~~~ javascript
+const p1 = function () {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve('1111');
+    }, 1000);
+  })
+}
+const p2 = function () {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // resolve('2222');
+      reject('err');
+    }, 2000);
+  })
+}
+
+// 链式操作
+// p1().then(res=>{
+//     console.log(res);
+//     return p2()
+// }).then(res=>{
+//     console.log(res);
+// }).catch(err=>{
+//     console.log(err);
+// })
+
+
+async function asyncFn() {
+  try {
+    let res1 = await p1();
+    console.log(res1);
+    let res2 = await p2();
+    console.log(res2);
+  } catch (err) {
+    console.log(err);
+  }
+}
+asyncFn();
+
+// 错误
+// let arr = [function(){},function(){},function(){}];
+// arr.forEach(async item =>{  // 导致3个async 对应三个 await  
+//     await item();
+// })
+// 正确 一个async 对应三个await
+async function test() {
+  await arr.forEach(item => {
+    item();
+  });	
+}
+
+// 改写移动盒子
+function move(ele, direction, target) {
+  return new Promise(resolve => {
+    function redo() {
+      let start = parseInt(ele.style[direction]) || 0;
+      let speed = Math.abs(target - start) / (target - start) * 5;
+      start += speed;
+      setTimeout(() => {
+        if (start === target) {
+          resolve("完成运动")
+        } else {
+          ele.style[direction] = start + "px";
+          redo();
+        }
+      }, 20);
+    }
+    redo();
+  })
+}
+async function test() {
+  await move(box, "left", 300);
+  console.log("向右完成移动");
+  await move(box, "top", 300);
+  console.log("向下完成移动");
+  await move(box, "left", 0);
+  console.log("向左完成移动");
+  await move(box, "top", 0);
+  console.log("向上完成移动");
+}
+test();
+
+~~~
+

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script>
+        let arr = ["a", "b", "c", "d"];
+
+        // 迭代对象 可被迭代对象 - 实现了[Symbol.iterator] -> 迭代器方法
+        // Object 中，没有迭代方法
+        let obj = {
+            a:1,
+            b:2,
+            c:3
+        }
+        // for (let attr in arr) {  // 循环的下标
+        //     document.querySelector("body").innerHTML += attr;
+        //     console.log(attr);
+        // }
+        // for (let val of arr) {
+        //     document.querySelector("body").innerHTML += val;
+        //     console.log(val);
+        // }
+        // for (let val of obj) {   // 不可迭代 obj is not iterable
+        //     console.log(val);
+        // }
+
+        // 展开 
+        console.dir(arr);
+        console.dir(obj);
+    </script>
+</body>
+</html>

@@ -76,7 +76,9 @@
         // $(".box").css("wh","600px");
 
         $(".btn").click(()=> {
-            $(".box").animate({width:"500px"},2000);
+            $(".box").animate({width:"500px"},2000,function(){
+                console.log("done~");
+            });
         })
 
     </script>

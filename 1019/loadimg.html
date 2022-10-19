@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #mycanvas {
+            border: 1px solid;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="mycanvas">
+
+    </canvas>
+    <script>
+
+        // 加载图片 通过canvas 绘制 加载的图片
+        function loadImg() {
+            return new Promise((resolve, reject) => {
+                let img = new Image();
+                img.src = "https://img0.baidu.com/it/u=1345303087,1528317222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=1082"
+
+                img.onload = function () {
+                    // 加载完成
+                    resolve(img)
+                }
+                img.onerror = function () {
+                    reject("图片加载失败")
+                }
+            })
+        }
+        // then 链式操作
+        loadImg().then(res => {
+            drawImg(res);
+        }, err => {
+            console.log(err);
+        }).catch(e=>{ // 可通过catch捕获所有的错误
+            console.log(e); 
+        })
+
+        // 绘制图片
+        function drawImg(img) {
+            const cavans = document.querySelector("#mycanvas");
+            const context = cavans.getContext("2d");
+            context.drawImage(img, 0, 0, 100, 100);
+        }
+    </script>
+</body>
+
+</html>

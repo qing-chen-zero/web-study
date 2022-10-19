@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <script>
+        // 同步 ->  异步  容易和  阻塞和非阻塞 混淆
+        // 同步阻塞  异步非阻塞
+        // setTimeout(()=> {
+        //     console.log(0000);
+        // },1000);
+        // console.log(111);
+        // console.log(222);
+        // // alert(1)
+        // console.log(333);
+
+
+        // 通过回调，解决异步
+        // function test(cb) {
+        //     setTimeout(() => {
+        //         console.log("test");
+        //         cb && cb();
+        //     }, 1000);
+        // }
+
+        // test();
+        // console.log("2222");
+
+        // test(function() {
+        //     console.log("2222");
+        // })
+
+        // 自定义事件  回调只能一对一，自定义事件可以一对多
+
+        let myEventObj = new EventTarget();
+
+
+        function test() {
+            setTimeout(() => {
+                console.log("test");
+                myEventObj.dispatchEvent(new CustomEvent("myevent"));
+            }, 1000);
+        }
+
+        test();
+        myEventObj.addEventListener("myevent",function(){
+            console.log("22222");
+        })
+        myEventObj.addEventListener("myevent",function(){
+            console.log("33333");
+        })
+
+        // ES6 promise 解决
+        
+        // async 及 await
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <script>
+
+        const p1 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve('1111');
+                }, 1000);
+            })
+        }
+        const p2 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // resolve('2222');
+                    reject('err');
+                }, 2000);
+            })
+        }
+
+        // 链式操作
+        // p1().then(res=>{
+        //     console.log(res);
+        //     return p2()
+        // }).then(res=>{
+        //     console.log(res);
+        // }).catch(err=>{
+        //     console.log(err);
+        // })
+
+
+        async function asyncFn() {
+            try {
+                let res1 = await p1();
+                console.log(res1);
+                let res2 = await p2();
+                console.log(res2);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        asyncFn();
+
+        // 错误
+        // let arr = [function(){},function(){},function(){}];
+        // arr.forEach(async item =>{  // 导致3个async 对应三个 await  
+        //     await item();
+        // })
+        // 正确 一个async 对应三个await
+        async function test() {
+            await arr.forEach(item => {
+                item();
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -139,8 +139,8 @@ class Jq {
         return getComputedStyle(ele, null)[styleName];
     }
     setStyle(ele, styleName, styleValue) {
-        if (typeof styleValue === "number"  && !(styleName in $.cssNumber)) {
-            styleValue += "px"; 
+        if (typeof styleValue === "number" && !(styleName in $.cssNumber)) {
+            styleValue += "px";
         }
 
         if (styleName in $.cssHooks) {
@@ -150,20 +150,33 @@ class Jq {
     }
 
     // 设置animate函数
-    animate(properties, duration) {
-        for (let index = 0; index < this.length; index++) {
-            let ele = this[index];
-            ele.animate(properties,{duration: duration});
-        }
-        setTimeout(()=>{
-            for (let index = 0; index < this.length; index++) {
-                let ele = this[index];
-                for (const key in properties) {
-                    this.setStyle(ele,key, properties[key]);
-                }
+    // animate(properties, duration) {
+    //     for (let index = 0; index < this.length; index++) {
+    //         let ele = this[index];
+    //         ele.animate(properties, { duration: duration });
+    //     }
+    //     setTimeout(() => {
+    //         for (let index = 0; index < this.length; index++) {
+    //             let ele = this[index];
+    //             for (const key in properties) {
+    //                 this.setStyle(ele, key, properties[key]);
+    //             }
+    //         }
+    //     }, duration)
+    // }
+
+    // animate - teach
+    animate(...arg) {
+        for (let i = 0; i<this.length;i++) {
+            let time = 
+            this[i].style.transition = `all ${typeof arg[1] === "number" ? (arg[1] / 1000) + "s" : "1s"}`
+            for (let j in arg[0]) {
+                this.setStyle(this[i], j, arg[0][j]);
             }
-        }, duration)
-        
+        }
+        if (typeof arg[arg.length-1] === "function") {
+            window.addEventListener("transitionend", arg[arg.length-1]())
+        }
     }
 }
 
@@ -188,15 +201,15 @@ $.cssNumber = {
     flexShrink: true,
     fontWeight: true,
     gridArea: true,
-    gridColumn: true, 
-    gridColumnEnd: true, 
-    gridColumnStart: true, 
+    gridColumn: true,
+    gridColumnEnd: true,
+    gridColumnStart: true,
     gridRow: true,
-    gridRowEnd: true, 
-    gridRowStart: true, 
-    lineHeight: true, 
-    opacity: true, 
-    order: true, 
+    gridRowEnd: true,
+    gridRowStart: true,
+    lineHeight: true,
+    opacity: true,
+    order: true,
     orphans: true,
     widows: true,
     zIndex: true,
