@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+    <script>
+        setTimeout(()=>{
+            console.log("这是一个setTimeout函数");
+        })
+        // 在一个宏任务里面，微任务先执行
+        // 微任务 promise MutationObserve  nodejs中 process.nextTick
+        let ob = new MutationObserver(function() {
+            console.log("回调执行了。。。。");
+        })
+        ob.observe(document.body, {
+            attributes:true
+        })
+        document.body.setAttribute("qc","123");
+    </script>
+</body>
+</html>

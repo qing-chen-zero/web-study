@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自己的Promise</title>
+</head>
+<body>
+    <h1>自己的Promise</h1>
+    <div id="res"></div>
+    <script type="module">
+        import MyPromise from "./MyPromise.js";
+
+        /*
+            异步队列 【1、2、3、4】
+            每个微任务 1、2、3、4里面都有一个宏任务
+            先执行微任务，再执行宏任务
+        */
+
+        // setTimeout(() => {
+        //     console.log("timeout");
+        // }, 0);
+        
+
+        // Promise 三种状态  pending fulfilled rejected
+        let res = document.querySelector("#res");
+        let p = new MyPromise((resolve, reject)=>{
+            // setTimeout(()=>{
+                resolve("success")
+            // }, 1000)
+            // reject("error")
+        })
+        res.innerHTML = p;
+        // console.log(p);
+        // then 里面有两个参数 onResolved, onRejected;
+        // 一个then
+        // p.then(res=>{
+        //     console.log(res);
+        // }, err=>{
+        //     console.log(err);
+        // })
+        // 1. 多个then 非链式操作  此时第一个会被第二个覆盖，则只会输出222 
+        // 数组保存，循环执行
+        // p.then(res => {
+        //     console.log("111", res);
+        // }, err => {
+        //     console.log("111", err);
+        // })
+
+        // p.then(res => {
+        //     console.log("222", res);
+        // }, err => {
+        //     console.log("222", err);
+        // })
+
+        // 2. 同步问题， 会导致接受数组未定义  先执行了，后注册
+        // 解决思路， 先注册，后调用
+
+        // 3. 微任务 宏任务 （都属于异步任务）问题 MutationObserve
+
+        // 4. then的链式调用问题
+        // let p2 = p.then(res=>{
+        //     console.log("111", res);
+        //     // 返回普通值
+        //     // return "这是返回的值";
+        //     // 返回MyPromise 对象
+        //     return new MyPromise(resolve => {
+        //         resolve("返回的MyPromise 对象");
+        //     })
+        // })
+        // p2.then(res=>{
+        //     console.log("??", res);
+        // })
+
+        // 5. Promise里面的方法
+        // Promise.all Promise.race Promise.resolve Promise.reject 
+
+        // let promise = MyPromise.resolve("err..");
+        // // let promise = MyPromise.reject("err..");
+        // promise.then(res=>{
+        //     console.log(res);
+        // },err=>{
+        //     console.log(err);
+        // })
+
+        let p1 = new MyPromise ((resolve,reject)=>{
+            setTimeout(()=>{
+                resolve(111);
+            },3000);
+        })
+        let p2 = new MyPromise ((resolve,reject)=>{
+            setTimeout(()=>{
+                resolve(2222);
+            },2000);
+        })
+        
+        // MyPromise.all([p1,p2]).then(res=>{
+        //     console.log(res);
+        // })
+        // 拿最快的
+        // MyPromise.race([p1,p2]).then(res=>{
+        //     console.log(res);
+        // })
+        p1.then(res=>{
+            console.log("resolve",res);
+        },err=>{
+            console.log("reject",err);
+        }).finally(()=>{
+            console.log("done~");
+        })
+</script>
+</body>
+</html>

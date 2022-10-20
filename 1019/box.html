@@ -164,8 +164,15 @@
             await move(box, "top", 0);
             console.log("向上完成移动");
         }
-        test();
-
+        function rerun() {
+            return new Promise((resolve, reject)=>{
+                setInterval(()=>{
+                    test();
+                    resolve("once agin");
+                }, 6000);
+            })
+        }
+        rerun()
 
     </script>
 </body>

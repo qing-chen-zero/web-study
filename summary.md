@@ -2971,3 +2971,353 @@ test();
 
 ~~~
 
+## Promise 原理解析和实现
+
+### Promise 的三种状态
+
+- pending 等待
+- fulfilled 成功
+- rejected 出错
+
+### Promise 三个状态实现
+
+~~~ javascript
+import MyPromise from "./MyPromise.js";
+// Promise 三种状态  pending fulfilled rejected
+let res = document.querySelector("#res");
+let p = new MyPromise((resolve, reject)=>{
+  // resolve("success")
+  reject("error")
+})
+res.innerHTML = p;
+console.log(p);
+
+// 功能实现
+export default class MyPromise {
+  constructor(handle) {
+    this.status = "pending";
+    this.value = undefined;
+    handle(this._resolve.bind(this), this._reject.bind(this));
+  }
+  _resolve(val) {
+    this.status = "fulfilled";
+    this.value = val;
+  };
+  _reject(val) {
+    this.status = "rejected";
+    this.value = val;
+  }
+}
+~~~
+
+### Promise then 方法
+
+~~~ javascript
+then(onResolved, onRejected) {
+  if (this.status === "fulfilled") {
+    onResolved && onResolved(this.value);
+  }else if (this.status === "rejected") {
+    onRejected && onRejected(this.value);
+  }else if (this.status === "pending") {// 不执行，但是保存onResolved 或者 onRejected
+    this.fulfilledFn = onResolved;
+    this.rejectedFn = onRejected;
+  }
+}
+
+// 改写_resolve _reject 
+_resolve(val) {
+  this.status = "fulfilled";
+  this.value = val;
+  this.fulfilledFn && this.fulfilledFn(val)
+};
+_reject(val) {
+  this.status = "rejected";
+  this.value = val;
+  this.rejectedFn && this.rejectedFn(val)
+}
+
+// 添加参数
+constructor(handle) {
+  this.status = "pending";
+  this.value = undefined;
+  handle(this._resolve.bind(this), this._reject.bind(this));
+  this.fulfilledFn = undefined;
+  this.rejectedFn = undefined;
+}
+~~~
+
+### Promise 多个then执行，非链式
+
+- 使用数组队列保存，再循环推出执行
+
+~~~ javascript
+// 多个then 非链式操作  此时第一个会被第二个覆盖，则只会输出222 
+// 数组保存，循环执行
+p.then(res => {
+  console.log("111", res);
+}, err => {
+  console.log("111", err);
+})
+p.then(res => {
+  console.log("222", res);
+}, err => {
+  console.log("222", err);
+})
+
+// 改写then方法
+then(onResolved, onRejected) {
+  if (this.status === "fulfilled") {
+    onResolved && onResolved(this.value);
+  }else if (this.status === "rejected") {
+    onRejected && onRejected(this.value);
+  }else if (this.status === "pending") {// 不执行，但是保存onResolved 或者 onRejected
+    // this.fulfilledFn = onResolved;
+    // this.rejectedFn = onRejected;
+    // 修改为队列
+    // 保存
+    this.fulfilledFnQueue.push(onResolved);
+    this.rejectedFnQueue.push(onRejected);
+  }
+}
+
+// 改写_resolved方法
+_resolve(val) {
+  this.status = "fulfilled";
+  this.value = val;
+  // this.fulfilledFn && this.fulfilledFn(val)
+  // 循环执行
+  let cb;
+  while(cb = this.fulfilledFnQueue.shift()) {
+    cb && cb(val);
+  }
+};
+
+// 改写_reject方法
+_reject(val) {
+  this.status = "rejected";
+  this.value = val;
+  // this.rejectedFn && this.rejectedFn(val)
+  let cb;
+  while(cb = this.rejectedFnQueue.shift()) {
+    cb && cb(val);
+  }
+}
+~~~
+
+### Promise 同步执行问题
+
+- 使用setTimeout解决此问题
+
+~~~ javascript
+// 调用 执行
+let p = new MyPromise((resolve, reject)=>{
+  // setTimeout(()=>{
+  resolve("success")
+  // }, 1000)
+  // reject("error")
+})
+
+p.then(res => {
+  console.log("111", res);
+}, err => {
+  console.log("111", err);
+})
+
+// 改写_resolved
+
+_resolve(val) {
+  let run = () => {
+    this.status = "fulfilled";
+    this.value = val;
+    // this.fulfilledFn && this.fulfilledFn(val)
+    // 循环执行
+    let cb;
+    while (cb = this.fulfilledFnQueue.shift()) {
+      cb && cb(val);
+    }
+  }
+
+  setTimeout(run, 0);
+
+};
+
+// 改写_rejected
+_reject(val) {
+  let run = () => {
+    this.status = "rejected";
+    this.value = val;
+    // this.rejectedFn && this.rejectedFn(val)
+    let cb;
+    while (cb = this.rejectedFnQueue.shift()) {
+      cb && cb(val);
+    }
+  }
+  setTimeout(run, 0); 
+
+}
+~~~
+
+### 微任务 宏任务
+
+~~~javascript
+// 设置setTimeout 在之前的代码上，会比Promise先执行
+// 解决方法 设置MutationObserve
+// 调用
+import MyPromise from "./MyPromise.js";
+
+/*
+            异步队列 【1、2、3、4】
+            每个微任务 1、2、3、4里面都有一个宏任务
+            先执行微任务，再执行宏任务
+        */
+
+setTimeout(() => {
+  console.log("timeout");
+}, 0);
+
+
+// Promise 三种状态  pending fulfilled rejected
+let res = document.querySelector("#res");
+let p = new MyPromise((resolve, reject)=>{
+  resolve("success")
+
+})
+res.innerHTML = p;
+
+p.then(res => {
+  console.log("111", res);
+}, err => {
+  console.log("111", err);
+})
+
+// 改写_resolve _reject 函数中的setTimeout
+let ob = new MutationObserver(run)
+ob.observe(document.body, {
+  attributes: true
+})
+document.body.setAttribute("qc", Math.random());
+~~~
+
+### Promise 链式操作
+
+~~~ javascript
+// 调用
+import MyPromise from "./MyPromise.js";
+
+
+// Promise 三种状态  pending fulfilled rejected
+let res = document.querySelector("#res");
+let p = new MyPromise((resolve, reject)=>{
+  resolve("success")
+
+})
+res.innerHTML = p;
+
+
+// 4. then的链式调用问题
+let p2 = p.then(res=>{
+  console.log("111", res);
+  // 返回普通值
+  // return "这是返回的值";
+  // 返回MyPromise 对象
+  return new MyPromise(resolve => {
+    resolve("返回的MyPromise 对象");
+  })
+})
+p2.then(res=>{
+  console.log("??", res);
+})
+
+//  改写then
+then(onResolved, onRejected) {
+  return new MyPromise((resolve, reject) => {
+    if (this.status === "fulfilled") {
+      onResolved && onResolved(this.value);
+    } else if (this.status === "rejected") {
+      onRejected && onRejected(this.value);
+    } else if (this.status === "pending") {
+      let resolveFn = (val)=> {
+        let res = onResolved && onResolved(val);
+        if (res instanceof MyPromise) {
+          // 返回的是一个Mypromise 对象
+          // res.then(res=>{
+          //     resolve(res);
+          // })
+          // 简写
+          res.then(resolve);
+        } else {
+          resolve(res);
+        }
+      }
+
+      let rejectFn = (val)=> {
+        let res = onRejected && onRejected(val);
+        reject(res);
+      }
+
+      this.fulfilledFnQueue.push(resolveFn);
+      this.rejectedFnQueue.push(rejectFn);
+    }
+  })
+
+}
+~~~
+
+### Promise.resolve 静态方法
+
+~~~ javascript
+static resolve(val) {
+  return new MyPromise(resolve => {
+    resolve(val);
+  })
+}
+~~~
+
+### Promise.reject 静态方法
+
+~~~ javascript
+static reject(val) {
+  return new MyPromise((resolve, reject) => {
+    reject(val);
+  })
+}
+~~~
+
+### Promise.all 静态方法
+
+~~~ javascript
+static all(lists) {
+  return new MyPromise((resolve) => {
+    let arr = [];
+    let num = 0;
+    lists.forEach(item => {
+      // item 多个promise对象， 谁快，谁就先调用，谁调用就返回谁
+      item.then(res => {
+        // console.log(res);
+        num++;
+        arr.push(res);
+        if (num >= lists.length) {
+          resolve(arr)
+        }
+      })
+    })
+  })
+}
+~~~
+
+### Promise.race 静态方法
+
+~~~ javascript
+static race(lists) {
+  return new MyPromise((resolve, reject)=>{
+    lists.forEach(item=>{
+      item.then(res=>{
+        resolve(res)
+      }, err=>{
+        reject(err)
+      })
+    })
+  })
+}
+~~~
+
