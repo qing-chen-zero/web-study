@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        {{message}}
+        <input type="text" name="" id="" v-model="message">
+    </div>
+
+    <script>
+
+        // 1. 数据驱动思想 如何把数据渲染到视图
+        // 2. 如何实现数据响应式
+        // 3. 如何实现双向绑定  v-model
+        // 
+        let app = new Vue({
+            el: "#app",
+            data: {
+                message: "数据"
+            }
+        })
+        setTimeout(() => {
+            app._data.message = "修改数据";
+        }, 1000);
+    </script>
+</body>
+</html>

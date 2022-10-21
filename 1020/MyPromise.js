@@ -135,10 +135,13 @@ export default class MyPromise {
         // (reason)=>this._resolve(cb()).then(()=>{
         //     console.log(reason);
         // }))
-        return this.then(resolve=>{
-            this._resolve(cb())
-        }, rejecet=>{
-            this._reject(cb())
-        })
+        // return this.then(resolve=>{
+        //     this._resolve(cb())
+        // }, rejecet=>{
+        //     this._reject(cb())
+        // })
+
+        // teach
+        this.then(cb,cb);
     }
 }

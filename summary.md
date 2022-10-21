@@ -3321,3 +3321,461 @@ static race(lists) {
 }
 ~~~
 
+### Promise.finally 方法
+
+~~~ javascript
+finally(cb) {
+  // return this.then((value)=>this._resolve(cb()).then(()=>value),
+  // (reason)=>this._resolve(cb()).then(()=>{
+  //     console.log(reason);
+  // }))
+  // return this.then(resolve=>{
+  //     this._resolve(cb())
+  // }, rejecet=>{
+  //     this._reject(cb())
+  // })
+
+  // teach
+  this.then(cb,cb);
+}
+~~~
+
+## Vue 原理解析与实现
+
+### 1. 初次编译
+
+~~~ javascript
+// 1. 初次编译 --> 多层编译
+// 调用
+let app = new Vue({
+  el: '#app',
+  data: {
+    message: "数据"
+  },
+  methods: {
+
+  }
+});
+// 实现
+class Vue {
+  constructor(opts) {
+    this.opts = opts;
+    this._data = opts.data
+    this.compile();
+  }
+  compile() {
+    // 作用域
+    let el = document.querySelector(this.opts.el);
+    // 获取子节点
+    let childNodes = el.childNodes;
+    childNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        console.log("元素节点");
+      } else if (node.nodeType === 3) {
+        console.log("文本节点");
+        // 查找 {{}}
+        let reg = /\{{2}\s*([^\{\}\s]+)\s*\}{2}/g
+        let textContent = node.textContent;
+        if (reg.test(textContent)) {
+          let $1 = RegExp.$1;
+          // console.log($1);
+          // 替换内容
+          node.textContent = node.textContent.replace(reg,this._data[$1])
+        }
+      }
+    })
+  }
+}
+~~~
+
+### 2. 解决多层编译问题
+
+- 抽离方法 compileNodes(el)
+- 递归调用
+
+HTML 文档
+
+~~~ html
+<div id='app'>
+  第一层 231312{{message}}
+  <div class="test">
+    第二层 {{message}}  目前这里的 message 不会被替换
+    <div>
+      第三层 {{message}}
+      <div>第四层 {{message}}</div>
+    </div>
+  </div>
+</div>
+~~~
+
+~~~ javascript
+// 重写compile
+compile() {
+  // 作用域
+  let el = document.querySelector(this.opts.el);
+  this.compileNodes(el);
+}
+
+// 添加comileNodes方法
+compileNodes(el) {
+  // 获取子节点
+  let childNodes = el.childNodes;
+  childNodes.forEach(node => {
+    if (node.nodeType === 1) {
+      console.log("元素节点");
+      if (node.childNodes.length > 0) {
+        // 如果子节点下面还有节点，递归调用
+        this.compileNodes(node);
+      }
+    } else if (node.nodeType === 3) {
+      console.log("文本节点");
+      // 查找 {{}}
+      let reg = /\{{2}\s*([^\{\}\s]+)\s*\}{2}/g
+      let textContent = node.textContent;
+      if (reg.test(textContent)) {
+        let $1 = RegExp.$1;
+        // console.log($1);
+        // 替换内容
+        node.textContent = node.textContent.replace(reg, this._data[$1])
+      }
+    }
+  })
+}
+~~~
+
+### 3. Object.defineProperty 
+
+- 在对象上直接定义个新的属性，或者修改现有的属性，并返回此对象
+
+~~~ javascript
+let obj = {
+  name: "张三"
+}
+// obj.name = "里斯"
+// console.log(obj);
+Object.defineProperty(obj, "name", {
+  configurable: true,
+  enumerable: true,
+  get() {
+    console.log("getting...");
+    return "张三"
+  },
+  set(newValue) {
+    console.log("setting...");
+    return newValue;
+  }
+})
+// 获取
+obj.name
+// 设置
+obj.name = "里斯"
+
+// configurable : false 不能删、删不掉
+//                true  能删掉
+// delete obj.name
+// console.log(obj);
+// enumerable : true 可循环 false 不能遍历
+// for (let key in obj) {
+//     console.log(key);
+// }
+~~~
+
+### 4. 设置get、set方法
+
+~~~ javascript
+// 调用数据
+let app = new Vue({
+  el: '#app',
+  data: {
+    message: "数据"
+  },
+  methods: {
+
+  }
+});
+setTimeout(() => {
+  console.log("正在改变中...");
+  app._data.message = "修改过了"
+}, 1000);
+
+constructor(opts) {
+  this.opts = opts;
+  this._data = opts.data
+  this.compile();
+  this.observe(this._data);
+}
+// 观察数据
+observe(data) {
+  let keys = Object.keys(data);
+  keys.forEach(key=>{
+    let value = data[key];
+    Object.defineProperty(data, key, {
+      configurable: true,
+      enumerable:true,
+      get() {
+        // 获取data[key]  会触发get 重复触发造成死循环
+        console.log("getting... Please waiting");
+        return value;
+      },
+      set(newVal){
+        console.log("setting... Please waiting");
+        value = newVal;
+      }
+    })
+  })
+}
+~~~
+
+### 添加自定义事件，监听数据修改事件
+
+~~~ javascript
+// 调用
+let app = new Vue({
+  el: '#app',
+  data: {
+    message: "数据"
+  },
+  methods: {
+
+  }
+});
+
+setTimeout(() => {
+  console.log("正在改变中...");
+  app._data.message = "修改过了"
+}, 1000);
+
+// Vue 类 constructor
+constructor(opts) {
+  super();
+  this.opts = opts;
+  this._data = opts.data
+  this.compile();
+  this.observe(this._data);
+}
+// 改写compileNodes方法
+compileNodes(el) {
+  // 获取子节点
+  let childNodes = el.childNodes;
+  childNodes.forEach(node => {
+    if (node.nodeType === 1) {
+      console.log("元素节点");
+      if (node.childNodes.length > 0) {
+        // 如果子节点下面还有节点，递归调用
+        this.compileNodes(node);
+      }
+    } else if (node.nodeType === 3) {
+      console.log("文本节点");
+      // 查找 {{}}
+      let reg = /\{{2}\s*([^\{\}\s]+)\s*\}{2}/g
+      let textContent = node.textContent;
+      if (reg.test(textContent)) {
+        let $1 = RegExp.$1;
+        // console.log($1);
+        // 替换内容
+        node.textContent = node.textContent.replace(reg, this._data[$1])
+        // 添加部分
+        this.addEventListener($1, e=>{
+          console.log("触发了事件..", e);
+          let newVal = e.detail;
+          let oldVal = this._data[$1]
+          node.textContent = node.textContent.replace(oldVal, newVal);
+        })
+      }
+    }
+  })
+}
+
+// 改写observe 方法
+// 观察数据
+observe(data) {
+  let keys = Object.keys(data);
+  keys.forEach(key=>{
+    let value = data[key];
+    let _this = this;
+    Object.defineProperty(data, key, {
+      configurable: true,
+      enumerable:true,
+      get() {
+        // 获取data[key]  会触发get 重复触发造成死循环
+        console.log("getting... Please waiting");
+        return value;
+      },
+      set(newVal){
+        console.log("setting... Please waiting");
+        // 编译  --> 较麻烦 --> 自定义事件
+        _this.dispatchEvent(new CustomEvent(key, {
+          detail: newVal
+        }))
+        value = newVal;
+      }
+    })
+  })
+}
+~~~
+
+### 添加收集器、订阅者
+
+~~~ javascript
+// 收集器
+class Dep {
+  constructor() {
+    this.subs = [];
+  }
+  // 添加订阅者
+  addSub(sub) {
+    this.subs.push(sub);
+  }
+  // 发布
+  notify(newVal) {
+    this.subs.forEach(sub => {
+      sub.update(newVal);
+    })
+  }
+}
+
+// 订阅者
+class Watcher {
+  constructor(data, key, cb) {
+    this.cb = cb;
+    Dep.target = this;
+    data[key]; // 触发get方法
+    Dep.target = null;
+  }
+  update(newVal) {
+    this.cb(newVal);
+  }
+}
+
+// 更改Vue类
+class Vue {
+  // 取消extend
+  constructor(opts) {
+    this.opts = opts;
+    this._data = opts.data
+    this.observe(this._data);
+    this.compile();
+
+  }
+  compile() {
+    // 作用域
+    let el = document.querySelector(this.opts.el);
+    this.compileNodes(el);
+  }
+  compileNodes(el) {
+    // 获取子节点
+    let childNodes = el.childNodes;
+    childNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        // console.log("元素节点");
+
+
+        if (node.childNodes.length > 0) {
+          // 如果子节点下面还有节点，递归调用
+          this.compileNodes(node);
+        }
+      } else if (node.nodeType === 3) {
+        // console.log("文本节点");
+        // 查找 {{}}
+        let reg = /\{{2}\s*([^\{\}\s]+)\s*\}{2}/g
+        let textContent = node.textContent;
+        if (reg.test(textContent)) {
+          let $1 = RegExp.$1;
+          // console.log($1);
+          // 替换内容
+          node.textContent = node.textContent.replace(reg, this._data[$1])
+          // 触发Watcher 回调
+          // 人为触发 get 方法 收集 watcher
+
+          new Watcher(this._data, $1, (newVal)=>{
+            let oldVal = this._data[$1]
+            let reg = RegExp(oldVal,"g")
+            node.textContent = node.textContent.replace(reg, newVal);
+          })
+        }
+      }
+    })
+  }
+  // 观察数据
+  observe(data) {
+    let keys = Object.keys(data);
+
+    keys.forEach(key => {
+      let value = data[key];
+      let _this = this;
+      let dep = new Dep();
+      Object.defineProperty(data, key, {
+        configurable: true,
+        enumerable: true,
+        get() {
+          console.log("get...");
+          if (Dep.target) {
+            dep.addSub(Dep.target)
+          }
+          return value;
+        },
+        set(newVal) {
+          console.log(dep);
+          dep.notify(newVal)
+          value = newVal;
+        }
+      })
+    })
+  }
+}
+~~~
+
+### 实现v-model  v-html
+
+~~~ javascript
+// 修改方法
+compileNodes(el) {
+  // 获取子节点
+  let childNodes = el.childNodes;
+  childNodes.forEach(node => {
+    if (node.nodeType === 1) {
+      // console.log("元素节点");
+      let attrs = node.attributes;
+      [...attrs].forEach(attr=>{
+        let attrName = attr.name;
+        let attrValue = attr.value;
+        if (attrName === "v-model" ) {
+          node.value = this._data[attrValue];
+          node.addEventListener("input", e=>{
+            this._data[attrValue] = e.target.value
+          })
+        } else if(attrName === "v-html") {
+          let str = this._data[attrValue];
+          node.innerHTML = str;
+        }
+      })
+
+
+      if (node.childNodes.length > 0) {
+        // 如果子节点下面还有节点，递归调用
+        this.compileNodes(node);
+      }
+    } else if (node.nodeType === 3) {
+      // console.log("文本节点");
+      // 查找 {{}}
+      let reg = /\{{2}\s*([^\{\}\s]+)\s*\}{2}/g
+      let textContent = node.textContent;
+      if (reg.test(textContent)) {
+        let $1 = RegExp.$1;
+        // console.log($1);
+        // 替换内容
+        node.textContent = node.textContent.replace(reg, this._data[$1])
+        // 触发Watcher 回调
+        // 人为触发 get 方法 收集 watcher
+
+        new Watcher(this._data, $1, (newVal)=>{
+          let oldVal = this._data[$1]
+          let reg = RegExp(oldVal,"g")
+          node.textContent = node.textContent.replace(reg, newVal);
+        })
+      }
+    }
+  })
+}
+~~~
+

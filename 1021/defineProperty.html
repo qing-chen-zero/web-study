@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+    <script>
+        let obj = {
+            name: "张三"
+        }
+        // obj.name = "里斯"
+        // console.log(obj);
+        Object.defineProperty(obj, "name", {
+            configurable: true,
+            enumerable: true,
+            get() {
+                console.log("getting...");
+                return "张三"
+            },
+            set(newValue) {
+                console.log("setting...");
+                return newValue;
+            }
+        })
+        // 获取
+        obj.name
+        // 设置
+        obj.name = "里斯"
+
+        // configurable : false 不能删、删不掉
+        //                true  能删掉
+        // delete obj.name
+        // console.log(obj);
+        // enumerable : true 可循环 false 不能遍历
+        // for (let key in obj) {
+        //     console.log(key);
+        // }
+
+    </script>
+</body>
+</html>

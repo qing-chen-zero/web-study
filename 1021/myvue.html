@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="./myvue.js"></script>
+</head>
+<body>
+    <h1>自己的Vue</h1>
+
+    <div id='app'>
+        第一层 231312{{message}} - {{message}}
+        <div class="test">
+            第二层 {{message}}  目前这里的 message 不会被替换
+            <div>
+                第三层 {{message}}
+                <div>第四层 {{message}}</div>
+            </div>
+        </div>
+        <div v-html="html"></div>
+        <!-- 元素节点 -->
+        <input type="text" v-model="message" />
+    </div>
+    <script>
+        // 1. 初次编译 --> 多层编译
+        // 2. 如何实现数据相适应  --> 数据劫持defineProperty --> 触发第二次编译 自定义事件 
+        // 优化 发布订阅
+        // 3. 实现双向绑定
+        let app = new Vue({
+            el: '#app',
+            data: {
+                message: "数据",
+                html: "<h1>HTML</h1>"
+            },
+            methods: {
+            
+            }
+        });
+
+        // setTimeout(() => {
+        //     console.log("正在改变中...");
+        //     app._data.message = "修改过了";
+        // }, 1000);
+    </script>
+</body>
+</html>
