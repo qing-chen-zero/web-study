@@ -1,0 +1,1 @@
+console.log("我是/home/b.js");

@@ -1,0 +1,1 @@
+console.log('我是Mb.js文件');
