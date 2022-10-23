@@ -105,18 +105,47 @@ const fs = require("fs");  // 文件操作
 // })
 
 // 判断文件或者目录是否存在
-fs.exists("222", exist=>{
-    log(exist)
-})
+// fs.exists("222", exist=>{
+//     log(exist)
+// })
 
 // 获取文件或者目录的详细信息
-fs.stat("index.js", (err, stat) => {
-    if (err) {
-        return log(err);
-    }
-    log(stat);
-    // 判断是否是一个文件
-    log(stat.isFile());
-    // 判断是否为文件夹
-    log(stat.isDirectory())
-})
+// fs.stat("index.js", (err, stat) => {
+//     if (err) {
+//         return log(err);
+//     }
+//     log(stat);
+//     // 判断是否是一个文件
+//     log(stat.isFile());
+//     // 判断是否为文件夹
+//     log(stat.isDirectory())
+// })
+
+// 删除非空文件夹
+// 先把目录里面的文件删除 -> 删除空目录
+
+function removeDir(path) {
+    let data = fs.readdirSync(path);
+    data.forEach(item => {
+        // item 文件-> 直接删除  目录继续查找
+        let file_path = path + "/" + item
+        let stat = fs.statSync(file_path);
+        if (stat.isFile()) {
+            fs.unlink(file_path, err => {
+                if (err) return log(err);
+                log("删除文件: " + file_path + "成功！");
+            })
+        }
+        if (stat.isDirectory()) {
+            removeDir(file_path);
+        }
+    })
+
+    fs.rmdir(path, err => {
+        if (err) return log(err);
+        log("删除目录成功");
+    })
+
+}
+
+removeDir("/Users/qingchen/Developer/web-study/1022/22");
