@@ -5011,5 +5011,82 @@ script(type="text/javascript"). // 注意一定要有这个.
 	console.log(123)
 ~~~
 
+#### 总结
+
+- pug对html很不友好
+
+### nunjucks
+
+~~~ JS
+const Koa = require("koa")
+const Router = require("koa-router")
+const nunjucks = require("koa-nunjucks-2")
+
+let app = new Koa()
+let router = new Router()
+app.use(nunjucks({
+    ext: "html", //njk
+    path: __dirname + "/views",
+    nunjucksConfig: {
+        trimBlocks: true // 防止Xss漏洞
+    }
+}))
+
+router.get("/", async ctx => {
+    // ctx.body = "hello, nunjucks";
+    await ctx.render("index", {
+        username: "张三",
+        num: 3,
+        arr: [
+            {
+                name: "张三",
+                age: 20
+            },
+            {
+                name: "里斯",
+                age: 18
+            }
+        ],
+        str : "hello world"
+    })
+})
+app.use(router.routes())
+app.listen(8000);
+~~~
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <h1>我是h1</h1>
+        <p>用户名是{{username}}</p>
+        <!-- 我是注释 -->
+        {# 我是nunjucks注释 #}
+
+        {% if num>3 %}
+        <p>num大于三</p>
+        {% elseif num<3 %}
+                        <p>num小于3</p>
+    {% else %}
+    <p>num 等于3 </p>
+    {% endif %}
+
+    <ul>
+        {% for item in arr %}
+        <li>{{item.name}}-{{item.age}}</li>
+        {% endfor %}
+    </ul>
+    {# 过滤器 #}
+    {{str | replace("world", "世界") | capitalize}}
+    </body>
+</html>
+~~~
+
 
 
