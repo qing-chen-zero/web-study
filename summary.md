@@ -4834,5 +4834,182 @@ server.listen(8888, ()=>{
 });
 ~~~
 
+## 模板引擎
+
+### Pug
+
+- 需要导入依赖 koa koa-views koa-router pug
+
+~~~ js
+const Koa = require("koa");
+const Router = require("koa-router");
+const views = require("koa-views");
+
+let app = new Koa();
+let router = new Router();
+app.use(views(__dirname+"/views", {
+    map: {
+        html: "pug"
+    }
+}));
+router.get("/", async ctx=>{
+    // ctx.body = "hello, pug!";
+    await ctx.render("index.pug")
+})
+app.use(router.routes());
+app.listen(3000);
+~~~
+
+~~~ html
+//- index.pug
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Document
+        style.
+            .mydiv {
+                height: 200px;
+                width: 200px;
+                background: red;
+            }
+    body
+        h1 我是一级标题
+        div 这是第一个div
+        div(class="mydiv") 这是class为mydiv的div
+        .mydiv1(style={"background":"red","font-size":"22px"}) DIV111 
+        #id idDIV--1
+~~~
+
+- 定义变量 使用 - let str = "test"
+- 通过异步方法传值 
+
+~~~ js
+router.get("/", async ctx=>{
+    // ctx.body = "hello, pug!";
+    await ctx.render("index.pug", {
+        data: "this is a test data"
+    })
+})
+
+// index.pug 文件引用
+- let str = "你好";
+p #{str}
+p #{data}
+~~~
+
+#### 注释
+
+~~~ js
+//- 这是PUG注释内容
+//- 
+    多行注释
+    多行注释
+// 这是html注释
+//
+    多行注释
+    多行注释
+div
+    | 我是divvvv 
+~~~
+
+#### 循环遍历
+
+~~~ js
+//js 
+const Koa = require("koa");
+const Router = require("koa-router");
+const views = require("koa-views");
+
+let app = new Koa();
+let router = new Router();
+app.use(views(__dirname + "/views", {
+    map: {
+        html: "pug"
+    }
+}));
+router.get("/", async ctx => {
+    let users = [
+        {
+            name: "zhangsan",
+            age: 20,
+            height: "178cm"
+        },
+        {
+            name: "lisi",
+            age: 18,
+            height: "176cm"
+        },
+        {
+            name: "wuwang",
+            age: 22,
+            height: "168cm"
+        },
+
+    ]
+    // ctx.body = "hello, pug!";
+    await ctx.render("index.pug", {
+        data: "this is a test data",
+        users
+    })
+})
+app.use(router.routes());
+app.listen(3000);
+
+
+// pug 
+        //- 循环
+        ul 
+            each item, index in users
+                li #{index} - 姓名是：#{item.name}, 年龄是: #{item.age}, 身高是：#{item.height}
+        - for(let i = 0; i<users.length; i++)
+            span 我是循环呈现出来的数据 #{users[i].name} - #{users[i].age} - #{users[i].height}
+~~~
+
+#### Case 语句
+
+~~~ js
+ //- case
+ - let num  = 2
+     case num 
+         when 1
+             p num is one 
+         when 2
+             p num is two 
+         default
+             p num is otherss
+~~~
+
+#### 定义宏、函数
+
+- 定义 mixin 名称
+- 调用 +名称
+
+~~~ js
+mixin myDiv 
+	div 我是常用的div 
++myDiv
++myDiv
++myDiv
++myDiv
+
+mixin pet(name, sex)
+	p 这是一只#{name}, 它的性别是#{sex}
++pet("兔子","母的")
++pet("cat","母的")
++pet("pig","母的")
++pet("dog","母的")
+~~~
+
+#### 写js
+
+~~~js
+include common.pug // 引用公共部分
+script(type="text/javascript"). // 注意一定要有这个.
+	console.log(123)
+~~~
+
 
 

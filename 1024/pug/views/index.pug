@@ -1,0 +1,66 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Document
+        style.
+            .mydiv {
+                height: 200px;
+                width: 200px;
+                background: red;
+            }
+    body
+        h1 我是一级标题
+        div 这是第一个div
+        div(class="mydiv") 这是class为mydiv的div
+        .mydiv1(style={"background":"red","font-size":"22px"}) DIV111 
+        #id idDIV--1
+        //- 这是PUG注释内容
+        //- 
+            多行注释
+            多行注释
+        // 这是html注释
+        //
+            多行注释
+            多行注释
+        div
+           | 我是divvvv 
+        - let str = "你好";
+        p #{str}
+        p #{data}
+
+        //- 循环
+        ul 
+            each item, index in users
+                li #{index} - 姓名是：#{item.name}, 年龄是: #{item.age}, 身高是：#{item.height}
+        - for(let i = 0; i<users.length; i++)
+            span 我是循环呈现出来的数据 #{users[i].name} - #{users[i].age} - #{users[i].height}
+
+        //- case
+        - let num  = 2
+            case num 
+                when 1
+                    p num is one 
+                when 2
+                    p num is two 
+                default
+                    p num is otherss
+        
+        mixin myDiv 
+            div 我是常用的div 
+        +myDiv
+        +myDiv
+        +myDiv
+        +myDiv
+
+        mixin pet(name, sex)
+            p 这是一只#{name}, 它的性别是#{sex}
+        +pet("兔子","母的")
+        +pet("cat","母的")
+        +pet("pig","母的")
+        +pet("dog","母的")
+        include common.pug
+        script(type="text/javascript").
+            console.log(123)
