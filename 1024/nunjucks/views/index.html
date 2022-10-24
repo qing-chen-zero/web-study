@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>我是h1</h1>
+    <p>用户名是{{username}}</p>
+    <!-- 我是注释 -->
+    {# 我是nunjucks注释 #}
+
+    {% if num>3 %}
+    <p>num大于三</p>
+    {% elseif num<3 %}
+    <p>num小于3</p>
+    {% else %}
+    <p>num 等于3 </p>
+    {% endif %}
+
+    <ul>
+        {% for item in arr %}
+        <li>{{item.name}}-{{item.age}}</li>
+        {% endfor %}
+    </ul>
+    {# 过滤器 #}
+    {{str | replace("world", "世界") | capitalize}}
+
+    <!-- macro 宏标签 -->
+    {% macro pet(name,sex) %}
+    <p>我是一只{{name}}, 我的性别是{{sex}}</p>
+    {% endmacro %}
+
+    {% macro person(name,sex) %}
+    <p>我是{{name}}, 我的性别是{{sex}}</p>
+    {% endmacro %}
+
+    {{pet("zhuzhu", "men")}}
+
+    {% include 'footer.html' %}
+</body>
+</html>
