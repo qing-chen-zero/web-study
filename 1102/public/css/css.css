@@ -3,6 +3,10 @@
     border: 0;
     padding: 0;
 }
+#app {
+    margin: 0 auto;
+    width: 80%;
+}
 
 #header {
     height: 80px;
@@ -31,4 +35,13 @@
 }
 .pagination-container {
     text-align: center;
+}
+
+
+.pagination a {
+    text-decoration: none;
+    color: #000;
+}
+.current {
+    color: red!important;
 }

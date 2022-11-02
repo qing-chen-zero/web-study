@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div id="main">
+        <div id="login" class="panel">
+            <h2>添加新商品</h2>
+            <form action="/addItem" method="post">
+                <div class="form-item">
+                    <select name="categoryId" id="">
+                        {% for category in categories %}
+                        <option value="{{category.id}}">{{category.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">名称：</span>
+                        <input type="text" name="name" class="form-input">
+                    </label>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">价格：</span>
+                        <input type="text" name="price" class="form-input">
+                    </label>
+                </div>
+                <div>
+                    <label for="">
+                        <span></span>
+                        <button class="form-button primary">确定添加</button>
+                    </label>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,5 +1,6 @@
 const mysql = require("mysql2");
 const items = require('./data/items.json');
+const categories = require('./data/categories.json');
 
 // 创建一个mysql的连接对象
 const connection = mysql.createConnection({
@@ -25,15 +26,31 @@ const connection = mysql.createConnection({
     2. 回调函数通常第一个参数是err， 第二个异步操作后的结果 first error
 */
 
-// for (let i = 0; i < items.length; i++) {
-//     let item = items[i];
+for (let i = 0; i < items.length; i++) {
+    let item = items[i];
+    connection.query(
+        "insert into `items` (`category_id`, `name`, `price`, `cover`) values (?,?,?,?)",
+        [
+            item.category_id,
+            item.name,
+            item.price,
+            item.cover
+        ],
+        function(err, results) {
+            if (err) {
+                console.log(err);
+            }
+            console.log(results);
+        }
+    )
+}
+
+// for (let i = 0; i < categories.length; i++) {
+//     let category = categories[i];
 //     connection.query(
-//         "insert into `items` (`category_id`, `name`, `price`, `cover`) values (?,?,?,?)",
+//         "insert into `categories` (`name`) values (?)",
 //         [
-//             item.category_id,
-//             item.name,
-//             item.price,
-//             item.cover
+//             category.name
 //         ],
 //         function(err, results) {
 //             if (err) {

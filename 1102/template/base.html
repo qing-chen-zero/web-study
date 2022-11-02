@@ -17,8 +17,9 @@
                 <!-- <a href="">1</a>
                 <a href="">笔记本</a>
                 <a href="">家居</a> -->
+                <a href="/">全部</a>
                 {% for category in categories %}
-                    <a href="">{{category.name}}</a>
+                    <a href="/{{category.id}}">{{category.name}}</a>
                 {% endfor %}
             </nav>
             <div id="user">
@@ -32,16 +33,15 @@
 
         <div class="pagination-container">
             <div class="pagination">
-                <a href="" class="prev">上一页</a>
-                <a href="">1</a>
-                <a href="">2</a>
-                <a href="">3</a>
-                <a href="" class="current">4</a>
-                <a href="">5</a>
-                <a href="">6</a>
-                <a href="">7</a>
-                <a href="">8</a>
-                <a href="" class="next">下一页</a>
+                <a href="?page={{page-1}}" class="prev">上一页</a>
+                {% for i in range(1, pages+1) %}
+                    {% if i == page %}
+                    <a href="?page={{i}}" class="current">{{i}}</a>
+                    {% else %}
+                    <a href="?page={{i}}">{{i}}</a>
+                    {% endif %}
+                {% endfor %}
+                <a href="?page={{page+1}}" class="next">下一页</a>
             </div>
         </div>
 
