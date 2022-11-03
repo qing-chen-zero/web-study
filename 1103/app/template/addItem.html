@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div id="main">
+        <div id="login" class="panel">
+            <h2>添加新商品</h2>
+            <form action="/addItem" method="post" enctype="multipart/form-data">
+                <div class="form-item">
+                    <span class="txt">分类:</span>
+                    <select name="categoryId" id="">
+                        {% for category in categories %}
+                        <option value="{{category.id}}">{{category.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">名称：</span>
+                        <input type="text" name="name" class="form-input">
+                    </label>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">价格：</span>
+                        <input type="text" name="price" class="form-input">
+                    </label>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">封面：</span>
+                        <button class="upload_cover primary-btn">上传</button>
+                        <input style="display: none;" type="file" id="cover" name="cover" class="form-input">
+                    </label>
+                </div>
+                <div>
+                    <label for="">
+                        <span></span>
+                        <button type="submit"  class="form-button primary-btn">确定添加</button>
+                    </label>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.querySelector(".upload_cover").addEventListener("click", (e)=>{
+            e.preventDefault()
+            document.querySelector("#cover").click();
+
+        })
+    </script>
+{% endblock %}

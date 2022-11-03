@@ -5270,3 +5270,149 @@ app.use(router.routes());
 
 ~~~
 
+## form 表单
+
+### Content-type
+
+#### enctype
+
+- application/x-www-form-urlencoded  默认格式  urlencoded: key=value&key=value
+- multipart/form-data  二进制格式
+- text/plain 纯文本
+
+### Koa-body
+
+- 默认只处理application/x-www-form-urlencoded 或者 application/json 或者 text/plain
+
+~~~ js
+KoaBody({
+  //  // 开启 multipart/form-data 的支持 
+  // 如果multipart包含了文件（图片、音频等file） 是通过 ctx.request.files 进行访问
+  multipart: true,
+  // 处理上传文件的后续逻辑，比如上传后的文件存储对象
+  formidable : {
+    // 上传后文件的存储目录
+    uploadDir: __dirname + "/public/images",
+    // 是否保持原有后缀
+    keepExtensions: true,
+  	
+  }
+  
+})
+~~~
+
+> 注：如果提交的是multipart/form-data, 普通的字符数据还是会被解析，然后通过ctx.request.body来进行访问，但是针对file类型的数据，会解析后存到ctx.request.files来进行访问
+
+### 使用cookie 存登陆过的用户
+
+~~~ js
+// 处理登陆请求
+router.get('/login', async ctx => {
+  let categories = await query(
+    "select * from categories"
+  )
+  ctx.body = tpl.render("login.html", {categories,})
+})
+router.post('/login', koaBody(), async ctx => {
+  let {name, password} = ctx.request.body;
+  if (!name || !password) {
+    return ctx.body = tpl.render("message.html", {
+      message: "参数错误",
+      url : 'javascript:history.back()',
+    })
+  }
+  let [res] = await query(
+    "select * from user where name = ? and password = ?",
+    [name, password]
+  )
+  if (res) {
+    // 保存cookie
+    // ctx.set('Set-Cookie', `id=${res.id}; name=${res.name}`)
+    ctx.res.setHeader('Set-Cookie', ['id='+res.id, 'name=' + res.name])
+    // ctx.cookies.set('key','value')
+    return ctx.body = tpl.render("message.html", {
+      message: "登陆成功",
+      url : '/',
+      user: ctx.state.user,
+    })
+  } else {
+    return ctx.body = tpl.render("message.html", {
+      message: "用户名密码不正确",
+      url : 'javascript:history.back()',
+      user: ctx.state.user,
+
+    })
+  }
+})
+~~~
+
+~~~js
+// 处理退出逻辑
+router.get('/quit', ctx => {
+  	// 删除cookie
+    ctx.cookies.set('name','')
+    ctx.cookies.set('id','')
+    ctx.body = tpl.render('message.html', {
+        message: "您已退出，进入首页",
+        url : '/'
+    })
+})
+~~~
+
+### 文件上传
+
+~~~ js
+const addItemKoaBodyOptions = {
+  // 开启 multipart/form-data 的支持 
+  // 如果multipart包含了文件（图片、音频等file） 是通过 ctx.request.files 进行访问
+  multipart: true,
+  // 处理上传文件的后续逻辑，比如上传后的文件存储对象
+  formidable: {
+    // 上传后文件的存储目录
+    uploadDir: __dirname + "/public/images",
+    keepExtensions: true,
+  }
+}
+
+router.post('/addItem', koaBody(addItemKoaBodyOptions), async ctx => {
+  let { categoryId, name, price } = ctx.request.body;
+  let { cover } = ctx.request.files;
+  let file_name = "";
+  // console.log(cover);
+  if (cover) {
+    // 通过caver.path 把上传后的文件名称获取到
+    // 通过正则替换，统一路径格式，比如把windos下的 \ 替换为 /
+    let path = cover.filepath.replace(/\\/g, '/');
+    let lastIndex = path.lastIndexOf('/');
+    file_name = path.substring(lastIndex + 1)
+  }
+
+  if (!categoryId || !name || !price || !cover) {
+    return ctx.body = tpl.render("message.html", {
+      message: "参数错误",
+      url : 'javascript:history.back()',
+      user: ctx.state.user,
+    })
+  }
+
+  let rs = await query(
+    "insert into items (category_id, name, price, cover) values (?, ?, ?, ?)",
+    [
+      categoryId,name,price, file_name
+    ]
+  )
+
+  let categories = await query(
+    "select * from categories"
+  )
+
+  // // ctx.body = "添加成功"; // ctx.body ==> ctx.response.body
+  ctx.body = tpl.render("message.html", {
+    message: "添加成功",
+    url: "/",
+    categories,
+    user: ctx.state.user,
+  })
+})
+~~~
+
