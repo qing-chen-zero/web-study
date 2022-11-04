@@ -5416,3 +5416,375 @@ router.post('/addItem', koaBody(addItemKoaBodyOptions), async ctx => {
 })
 ~~~
 
+## 轮询
+
+> 客户端定时向服务器发送Ajax请求，服务器接受到请求后无论是否有相应的数据，都马上返回相应信息并关闭连接。
+>
+> 实现简单、但浪费资源和服务器资源。新数据相应会有延迟
+>
+> 应用于小应用以及小场景
+
+~~~ js
+const http = require('http')
+const fs = require('fs');
+
+http.createServer( (req, res) => {
+  let url = req.url;
+  res.setHeader('content-type', 'text/html;charset=utf-8')
+  if (url === "/") {
+
+    res.end( fs.readFileSync('./index.html'));
+  } else {
+    if (url === '/getData') {
+      let data = [
+        {id :1 , title: "one"},
+        {id :2 , title: "two"},
+        {id :3 , title: "three"}
+      ]
+      res.end(JSON.stringify(data));
+    }
+  }
+}).listen(9999);
+
+~~~
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    hello,world
+    <button>获取数据</button>
+    <ul>
+
+    </ul>
+
+
+    <script>
+      let ulElement = document.querySelector("ul")
+      let buttonElement = document.querySelector('button')
+      getData();
+      //buttonElement.onclick = function() {
+      //  getData();
+      //}
+      setInterval(()=>{
+            getData();
+        }, 1000)
+      function getData() {
+        ulElement.innerHTML = "";
+        let xhr = new XMLHttpRequest()
+        xhr.onload = function() {
+          let data = JSON.parse(xhr.responseText)
+          data.forEach(item => {
+            let li = document.createElement('li')
+            li.innerHTML = item.title;
+            ulElement.appendChild(li);
+          });
+        }
+        xhr.open('get', '/getData', true);
+        xhr.send()
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+## 长轮询
+
+> 与简单轮询相似，但是他只是在服务器没有新的返回数据情况下不会立即响应，而会挂起，直到有数据或即将超时。
+>
+> 容易实现、节约带宽
+>
+> 占用服务器资源，处理能力变少
+>
+> 应用于web聊天
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    hello,world
+    <button>获取数据</button>
+    <ul>
+
+    </ul>
+
+
+    <script>
+      let ulElement = document.querySelector("ul")
+      let buttonElement = document.querySelector('button')
+      getData();
+      // buttonElement.onclick = function() {
+      //     getData();
+      // }
+      // setInterval(()=>{
+      //     getData();
+      // }, 3000)
+      function getData() {
+        let xhr = new XMLHttpRequest()
+        xhr.onload = function() {
+          ulElement.innerHTML = "";
+          let data = JSON.parse(xhr.responseText)
+          data.forEach(item => {
+            let li = document.createElement('li')
+            li.innerHTML = item.title;
+            ulElement.appendChild(li);
+          });
+          getData();
+        }
+        xhr.open('get', '/getData', true);
+        xhr.send()
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+~~~ js
+const http = require('http')
+const fs = require('fs');
+
+
+let resData;
+
+http.createServer( async (req, res) => {
+  let url = req.url;
+  res.setHeader('content-type', 'text/html;charset=utf-8')
+  if (url === "/") {
+    res.end( fs.readFileSync('./index.html'));
+  } else {
+    if (url === '/getData') {
+      // 核心代码
+      resData = await new Promise((resolve) => {
+        renderData();
+        function renderData() {
+          let data = fs.readFileSync("./data.json").toString()
+          if (data == resData) {
+            // 数据没变化，等1秒再读
+            console.log("数据没变化");
+            setTimeout(renderData, 1000);
+          } else {
+            console.log("数据变了");
+            resolve(data);
+          }
+        }
+      })
+      res.end(resData);
+    }
+  }
+}).listen(9999);
+~~~
+
+~~~ json
+[
+    {"id" :1 , "title": "one"},
+    {"id" :2 , "title": "two"},
+    {"id" :3 , "title": "three"}
+]
+~~~
+
+## SSE 服务器推送 Server Send Event
+
+~~~ js
+const http = require('http')
+const fs = require('fs');
+
+
+let resData;
+
+http.createServer( async (req, res) => {
+  let url = req.url;
+
+  if (url === "/") {
+    res.setHeader('content-type', 'text/html;charset=utf-8');
+    res.end( fs.readFileSync('./index.html'));
+  } else {
+    if (url === '/getData') {
+      res.setHeader('content-type', 'text/event-stream');
+      resData = await new Promise((resolve) => {
+        renderData();
+        function renderData() {
+          // let data = fs.readFileSync("./data.json").toString().replace(/\n|\s/g, '');
+          let data = require("./data.json");
+          data = JSON.stringify(data);
+          if (data == resData) {
+            // 数据没变化，等1秒再读
+            console.log("数据没变化");
+            res.write(`event: message\ndata: {"data": ${data}}\n\n`)
+            setTimeout(renderData, 1000);
+          } else {
+            console.log("数据变了");
+            resolve(data);
+          }
+        }
+      })
+      // res.end(resData);
+
+
+    }
+  }
+}).listen(9999);
+~~~
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+
+  <body>
+    hello,world
+    <ul>
+
+    </ul>
+
+
+    <script>
+      let ulElement = document.querySelector("ul");
+      let evtSource = new EventSource("/getData");
+      evtSource.addEventListener('open', function () {
+        console.log("连接成功");
+      });
+      evtSource.addEventListener('message', function (e) {
+        console.log("message");
+        ulElement.innerHTML = "";
+        let data = JSON.parse(e.data);
+        data.data.forEach(item => {
+          let li = document.createElement('li')
+          li.innerHTML = item.title;
+          ulElement.appendChild(li);
+        });
+      });
+    </script>
+  </body>
+</html>
+~~~
+
+## Socket
+
+~~~ js
+const http = require('http')
+const fs = require('fs');
+const socket = require('socket.io');
+
+// 创建httpserver 服务器对象
+const server = http.createServer( async (req, res) => {
+  let url = req.url;
+  if (url === "/") {
+    res.setHeader('content-type', 'text/html;charset=utf-8');
+    res.end( fs.readFileSync('./index.html'));
+  } else {
+
+  }
+});
+
+// 在httpServer构建一个socket server 对象
+// io 已经处理了一个特殊请求 /socket.io/socket.io.js 
+const io = socket(server)
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  // 给当前连接的客户端 socket 发送一个事件
+  // socket.emit 给指定的客户端socket对象发消息
+  socket.emit('hello', {
+    id: socket.id
+  })
+  // 给处理自己以外的其他对象发送消息
+  socket.broadcast.emit('hi',{id:socket.id});
+
+  // 接受来自客户端推送过来的消息
+  socket.on('message', function(data){
+    socket.emit('data', {
+      id: socket.id,
+      message: data.message
+    })
+    socket.broadcast.emit('data',{id:socket.id,message: data.message});
+  })
+})
+
+server.listen(9999);
+~~~
+
+~~~html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #efefef; }
+    </style>
+  </head>
+  <body>
+    <h1>Web Socket- <span id="username"></span></h1>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button id="sendBtn">Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      let usernameEle = document.querySelector("#username")
+      let messageEle = document.querySelector("#messages");
+      let inputEle = document.querySelector("#input");
+      let buttonBtn = document.querySelector("#sendBtn");
+
+      let uid;
+      // io 提供了一个全局方法，用来构建一个socket客户端对象
+      const socket = io()
+
+      socket.on('hello', function(data){
+        uid = data.id;
+        usernameEle.innerHTML = uid;
+        addMessage(`欢迎您, ${uid}`)
+      })
+      socket.on('hi', function(data){
+        addMessage(`${data.id}, 进入了聊天室`)
+      })
+      socket.on('data', function(data){
+        addMessage(`${data.id} 说：${data.message}`)
+      })
+
+      function addMessage(message) {
+        let li = document.createElement('li');
+        li.innerHTML = message;
+        messageEle.appendChild(li)
+      }
+
+      buttonBtn.onclick = function(e) {
+        e.preventDefault();
+        let message = messageEle.value;
+        if (message.trim() !== "") {
+          socket.emit('message',message);
+        }
+      }
+    </script>
+  </body>
+</html>
+~~~
+

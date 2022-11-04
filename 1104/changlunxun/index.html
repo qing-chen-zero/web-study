@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    hello,world
+    <button>获取数据</button>
+    <ul>
+
+    </ul>
+
+
+    <script>
+        let ulElement = document.querySelector("ul")
+        let buttonElement = document.querySelector('button')
+        getData();
+        // buttonElement.onclick = function() {
+        //     getData();
+        // }
+        // setInterval(()=>{
+        //     getData();
+        // }, 3000)
+        function getData() {
+            let xhr = new XMLHttpRequest()
+            xhr.onload = function() {
+                ulElement.innerHTML = "";
+                let data = JSON.parse(xhr.responseText)
+                data.forEach(item => {
+                    let li = document.createElement('li')
+                    li.innerHTML = item.title;
+                    ulElement.appendChild(li);
+                });
+                getData();
+            }
+            xhr.open('get', '/getData', true);
+            xhr.send()
+        }
+
+
+    </script>
+</body>
+</html>
