@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        .loginContainer {
+            width: 50%;
+            text-align: center;
+            margin: 0 auto;
+            border: 1px solid #000;
+        }
+        .inputStyle {
+            width: 200px;
+            margin: 10px 0;
+            height:30px;
+        }
+        .loginStyle {
+            background-color: burlywood;
+        }
+        form {
+            position: relative;
+        }
+        .exchange {
+            position: absolute;
+            top: 8px;
+            right: 65px;
+            color: red;    
+        }
+    </style>
+</head>
+<body>
+    <div class="loginContainer">
+        <h1>登陆</h1>
+        <form action="/checkUser" method="post">
+            姓名：<input type="text" class="inputStyle" name="username"/><br>
+            <div class="exchange"></div>
+            密码：<input type="password" class="inputStyle" name="password"/><br>
+            <input type="submit" class="loginStyle" value="登陆">
+        </form>
+    </div>
+
+    <script>
+        // ajax
+        // XMLHttpRequest
+        document.querySelector(".inputStyle").onblur = function() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("get", `/checkUserName?username=${this.value}`, true);
+            xhr.onload = function(){
+                // console.log(xhr.responseText);
+                let res = JSON.parse(xhr.responseText);
+                document.querySelector(".exchange").innerHTML = res.info;
+                if (res.status == 1) {
+                    document.querySelector(".exchange").style.color = "green";
+                } else {
+                    document.querySelector(".exchange").style.color = "red";
+                }
+            }
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

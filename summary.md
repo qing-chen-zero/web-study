@@ -5788,3 +5788,441 @@ server.listen(9999);
 </html>
 ~~~
 
+# 前后端交互
+
+## Ajax
+
+- 异步javascript和XML
+
+### 服务端
+
+> 验证用户名是否正确
+
+~~~ js
+const Koa = require('koa');
+const static = require("koa-static")
+const Router =require("koa-router")
+const usersData = require("./data/users.json")
+
+let app = new Koa();
+app.use( static(__dirname+"/static") );
+
+let router = new Router();
+
+router.get("/", (ctx, next) => {
+  ctx.body = "hello";
+})
+
+router.get('/checkUserName', (ctx,next) => {
+  let res = usersData.find(v=>v.username == ctx.query.username);
+  if (res) {
+    ctx.body = {
+      status: 1,
+      info: "用户名正确"
+    };
+  }else {
+    ctx.body = {
+      status: 2,
+      info: "用户名错误"
+    }
+  }
+})
+
+app.use(router.routes());
+app.listen(3000);
+~~~
+
+### 用户端
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+      .loginContainer {
+        width: 50%;
+        text-align: center;
+        margin: 0 auto;
+        border: 1px solid #000;
+      }
+      .inputStyle {
+        width: 200px;
+        margin: 10px 0;
+        height:30px;
+      }
+      .loginStyle {
+        background-color: burlywood;
+      }
+      form {
+        position: relative;
+      }
+      .exchange {
+        position: absolute;
+        top: 8px;
+        right: 65px;
+        color: red;    
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loginContainer">
+      <h1>登陆</h1>
+      <form action="/checkUser" method="post">
+        姓名：<input type="text" class="inputStyle" name="username"/><br>
+        <div class="exchange"></div>
+        密码：<input type="password" class="inputStyle" name="password"/><br>
+        <input type="submit" class="loginStyle" value="登陆">
+      </form>
+    </div>
+
+    <script>
+      // ajax
+      // XMLHttpRequest
+      document.querySelector(".inputStyle").onblur = function() {
+        
+        let xhr = new XMLHttpRequest();
+        // true 代表异步 false 是同步
+        xhr.open("get", `/checkUserName?username=${this.value}`, true);
+        
+        xhr.onload = function(){
+          // console.log(xhr.responseText);
+          let res = JSON.parse(xhr.responseText);
+          document.querySelector(".exchange").innerHTML = res.info;
+          if (res.status == 1) {
+            document.querySelector(".exchange").style.color = "green";
+          } else {
+            document.querySelector(".exchange").style.color = "red";
+          }
+        }
+        // 发送数据
+        xhr.send();
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+### 数据
+
+~~~json
+[
+  {
+    "id":1,
+    "username": "123",
+    "password": "123"
+  },
+  {
+    "id":2,
+    "username": "test",
+    "password": "123"
+  }
+]
+~~~
+
+### url 带参传递
+
+~~~ js
+xhr.open("get","/get/3", true); // /get/3就是请求地址
+// 后台处理方式
+router.get('/get/:id', (ctx, next) => {
+  console.log(ctx.params);
+  ctx.body = {
+    status: 1,
+    info: "请求成功"
+  }
+})
+~~~
+
+### POST
+
+- 使用 koa-body 接受
+- 设置头信息 content-type
+
+~~~js
+router.post('/post', koaBody(), (ctx, next)=> {
+  console.log(ctx.request.body);
+  ctx.body = {
+    status : 1,
+    info: "post请求成功"
+  }
+})
+~~~
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+
+    <button>点击发送</button>
+
+    <script>
+      document.querySelector("button").onclick = function() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('post', '/post', true);
+        xhr.onload = function() {
+          console.log(xhr.responseText);
+          // 获取返还头信息
+          // console.log(xhr.getAllResponseHeaders());
+          console.log(xhr.getResponseHeader("content-type"));
+
+        }
+        xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
+        // xhr.setRequestHeader("content-type", "multipart/form-data"); // 二进制编码
+        xhr.setRequestHeader("content-type", "application/json"); // JSON 格式
+        let data = JSON.stringify({
+          username : 'qwe',
+          age: 12
+        })
+        xhr.send(data);
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+### 状态码
+
+![image-20221105175505976](/Users/qingchen/Library/Application Support/typora-user-images/image-20221105175505976.png)
+
+~~~ html
+<!DOCTYPE html>
+  <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Document</title>
+</head>
+<body>
+          <button>btn1</button>
+
+<script>
+          document.querySelector("button").onclick = function() {
+          let xhr = new XMLHttpRequest();
+          xhr.open("get","/get/3", true);
+          xhr.onload = function() {
+            console.log(xhr.responseText);
+            console.log(xhr.readyState);
+            console.log(xhr.status);
+          }
+          // xhr.onreadystatechange = function() {
+          //     if (xhr.readyState == 4) {
+          //         if (xhr.status == 200) {
+          //             console.log(xhr.responseText);
+          //         }
+          //     }
+          // }
+          xhr.send();
+        }
+</script>
+</body>
+</html>
+~~~
+
+### XML数据返回
+
+- 服务器设置content-type
+- 客户端设置content-type
+
+~~~js
+router.get('/xml', (ctx, next) => {
+  // 服务器设置
+  // ctx.set("content-type","text/xml");
+  ctx.body = `<?xml version='1.0' encoding='utf-8' ?>
+                    <books>
+                        <nodejs>
+                            <name>nodejs</name>
+                            <price>16</price>
+                        </nodejs>
+                        <react>
+                            <name>react</name>
+                            <price>26</price>
+                        </react>
+                    </books>
+                `
+})
+~~~
+
+~~~html
+<script>
+  document.querySelector("button").onclick = function() {
+    let xhr = new XMLHttpRequest();
+    xhr.open("get","/xml", true);
+    // 重写content-type
+    xhr.overrideMimeType("text/xml");
+    xhr.onload = function() {
+      // console.log(xhr.responseText);
+      console.log(xhr.responseXML);
+      // console.log(xhr.response);
+      let name = xhr.responseXML.getElementsByTagName("name")[0].innerHTML;
+      console.log(name);
+    }
+    xhr.send();
+  }
+</script>
+~~~
+
+### 文件上传
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+
+    <input type="file" name="" id="myfile">
+    <button>upload</button>
+
+    <script>
+      document.querySelector("button").onclick = function() {
+        let file = document.querySelector("#myfile").files[0];
+        // console.log(files);
+        let form = new FormData();
+        form.append("img", file);
+        let xhr = new XMLHttpRequest();
+        xhr.open('post', '/upload', true);
+        xhr.onload = function(){
+          console.log(xhr.responseText);
+        }
+        xhr.send(form);
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+~~~js
+router.post('/upload', koaBody({multipart:true}), (ctx,next) => {
+    console.log(ctx.request.body);
+    console.log(ctx.request.files.img);
+    let fileData = fs.readFileSync(ctx.request.files.img.filepath);
+    fs.writeFileSync("static/imgs/" + ctx.request.files.img.originalFilename,fileData)
+    ctx.body = "success";
+})
+~~~
+
+### 使用formdata实现文件上传
+
+- 创建formdata对象
+- 监控上传进度
+- upload事件
+  - onloadstart 上传开始
+  - onprogress 数据传输进行中
+    - evt.total 总传输大小
+    - evt.loaded 当前上传的文件大小
+  - Onabort 上传操作终止
+  - onerror 上传失败
+  - onload 上传成功
+  - onloadend 上传完成 （无论是成功还是失败）
+
+ ~~~ html
+ <!DOCTYPE html>
+ <html lang="en">
+   <head>
+     <meta charset="UTF-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Document</title>
+   </head>
+   <body>
+     <input type="file" class="myfile">
+     进度：<progress value="0" max="100"></progress> <span class="percent">0%</span>
+     速度：<span class="speed">20b/s</span>
+     <button>upload</button>
+     <button>cancel</button>
+     <script>
+       let xhr = new XMLHttpRequest();
+       let btns = document.querySelectorAll("button");
+       let stime;
+       let sloaded;
+       btns[0].onclick = function(){
+         let file = document.querySelector(".myfile").files[0];
+         let form = new FormData();
+         form.append("myfile", file);
+         xhr.open('post', '/fileUpload', true);
+         xhr.onload = function() {
+           console.log(xhr.responseText);
+         }
+         xhr.upload.onloadstart = function() {
+           console.log("开始上传");
+           stime = new Date().getTime();
+           sloaded = 0;
+         }
+         xhr.upload.onprogress = function(evt) {
+           let endTime = new Date().getTime();
+           // 时间差
+           let dTime = (endTime - stime) / 1000;
+           // 当前时间内上传的文件大小
+           let dloaded = evt.loaded - sloaded;
+           // 上传速度
+           let speed = dloaded / dTime;
+           // 上传速度单位
+           let unit = "b/s";
+           // 更新时间。文件大小
+           stime = new Date().getTime();
+           sloaded = evt.loaded;
+           if (speed/1024 > 1) {
+             unit = "kb/s";
+             speed = speed / 1024;
+           }
+           if (speed/1024 > 1) {
+             unit = "mb/s";
+             speed = speed / 1024;
+           }
+           document.querySelector(".speed").innerHTML = speed.toFixed(2) + unit;
+ 
+           // 循环执行
+           console.log("正在上传");
+           // 当前文件上传的大小 evt.loaded
+           // 需要上传的大小 evt.total
+           let percent = (evt.loaded / evt.total * 100).toFixed(0);
+           // console.log(percent);
+           document.querySelector("progress").value = percent;
+           document.querySelector(".percent").innerHTML = percent + "%";
+         }
+         xhr.upload.onload = function() {
+           console.log("上传成功");
+         }
+         xhr.upload.onabort = function() {
+           console.log("取消上传");
+         }
+         xhr.upload.onloadend = function() {
+           console.log("上传完成");
+         }
+         xhr.send(form);
+       }
+       btns[1].onclick = function() {
+         xhr.abort();
+       }
+     </script>
+   </body>
+ </html>
+ ~~~
+
+~~~ js
+router.post('/fileUpload', (ctx, next) => {
+  console.log(ctx.request.files);
+  let fileData = fs.readFileSync(ctx.request.files.img.filepath);
+  fs.writeFileSync("static/imgs/" + ctx.request.files.myfile.originalFilename,fileData)
+  ctx.body = "请求成功";
+})
+~~~
+
