@@ -72,7 +72,7 @@ router.post('/upload', koaBody({multipart:true}), (ctx,next) => {
 
 router.post('/fileUpload', (ctx, next) => {
     console.log(ctx.request.files);
-    let fileData = fs.readFileSync(ctx.request.files.img.filepath);
+    let fileData = fs.readFileSync(ctx.request.files.myfile.filepath);
     fs.writeFileSync("static/imgs/" + ctx.request.files.myfile.originalFilename,fileData)
     ctx.body = "请求成功";
 })
