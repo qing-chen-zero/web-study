@@ -6226,3 +6226,18 @@ router.post('/fileUpload', (ctx, next) => {
 })
 ~~~
 
+## XMLHttpRequest
+
+- 局部更新
+- 获取必要数据
+
+### Ajax 封装使用
+
+- 请求方法可变
+- 请求url可变
+- 请求的数据（queryString, body）可变
+- 提交的数据类型(content-type) 可变
+
+### node 服务器
+
+- 后端只提供接口，返回数据
