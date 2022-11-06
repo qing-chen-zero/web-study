@@ -1,0 +1,65 @@
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+#app {
+    margin: 0 auto;
+    width: 80%;
+}
+
+#header {
+    height: 80px;
+    display: flex;
+    flex: 1;
+}
+#logo {
+    width: 20%;
+    text-align: left;
+}
+#nav {
+    width: 60%;
+}
+#nav a {
+    margin: 0 10px;
+}
+#user {
+    text-align: right;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.panel {
+    width: 25%;
+    list-style: none;
+}
+.pagination-container {
+    text-align: center;
+}
+
+
+.pagination a {
+    text-decoration: none;
+    color: #000;
+}
+.current {
+    color: red!important;
+}
+
+.primary-btn {
+    width: 100px;
+    height: 30px;
+    border-radius: 30px;
+    background-color: aqua;
+}
+.form-item input {
+    border: 1px solid #000;
+    width: 200px;
+    height: 30px;
+}
+.panel img {
+    width: 80%;
+}

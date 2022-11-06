@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/public/css/css.css">
+    <!-- <link rel="stylesheet" href="/1031/node/public/css/css.css"> -->
+</head>
+<body>
+    <div id="app">
+        <header id="header">
+            <a href="/" id="logo"></a>
+            <nav id="nav">
+                <!-- <a href="">1</a>
+                <a href="">笔记本</a>
+                <a href="">家居</a> -->
+                <a href="/">全部</a>
+                {% for category in categories %}
+                    <a href="/{{category.id}}">{{category.name}}</a>
+                {% endfor %}
+            </nav>
+            <div id="user">
+                {% if (user.id) %}
+                <a href="/user">你好,{{user.name}}</a>
+                <a href="/addItem">添加商品</a>
+                <a href="/quit">退出</a>
+                {% else %}
+                <a href="/login">登陆</a>
+                <a href="/register">注册</a>
+                {% endif %}
+
+            </div>
+        </header>
+
+        {% block main %}
+        {% endblock %}
+
+        <div class="pagination-container">
+            <div class="pagination">
+                <a href="?page={{page-1}}" class="prev">上一页</a>
+                {% for i in range(1, pages+1) %}
+                    {% if i == page %}
+                    <a href="?page={{i}}" class="current">{{i}}</a>
+                    {% else %}
+                    <a href="?page={{i}}">{{i}}</a>
+                    {% endif %}
+                {% endfor %}
+                <a href="?page={{page+1}}" class="next">下一页</a>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+
+</html>

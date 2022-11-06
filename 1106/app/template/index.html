@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{%block main%}
+<div id="main">
+    <ul class="items-list">
+        {% for item in items %}
+        <li class="panel">
+            <img src="/public/images/{{item.cover}}" alt="">
+            <div class="name">{{item.name}}</div>
+            <div class="price">¥{{item.price}}</div>
+        </li>
+        {% endfor %}
+
+    </ul>
+</div>
+{%endblock%}

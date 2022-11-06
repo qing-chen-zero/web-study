@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div id="main">
+        <div id="login" class="panel">
+            <h2>注册</h2>
+            <form action="/register" method="post">
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">姓名：</span>
+                        <input type="text" name="name" class="form-input">
+                    </label>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">密码</span>
+                        <input type="password" name="password" class="form-input">
+                    </label>
+                </div>
+                <div class="form-item">
+                    <label for="">
+                        <span class="txt">重复密码</span>
+                        <input type="password" name="repassword" class="form-input">
+                    </label>
+                </div>
+                <div>
+                    <label for="">
+                        <span></span>
+                        <button type="submit" class="form-button" id="register">注册</button>
+                        <a href="/login">我有账号，立即登陆</a>
+                    </label>
+                </div>
+                <div id="message">
+
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

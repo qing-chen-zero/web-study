@@ -1,0 +1,65 @@
+[
+    {
+        "id": 1,
+        "category_id": 1,
+        "name": "iPhone 13 Pro (A2639)",
+        "price": 7999,
+        "cover": "71397b3218d9103b.jpg"
+    },
+    {
+        "id": 2,
+        "category_id": 1,
+        "name": "iPhone 12 mini (A2400)",
+        "price": 3999,
+        "cover": "7960f6d10a0e16c5.jpg"
+    },
+    {
+        "id": 3,
+        "category_id": 1,
+        "name": "iPhone 11 (A2223)",
+        "price": 4299,
+        "cover": "52fdd5cf7f30262c.jpg"
+    },
+    {
+        "id": 4,
+        "category_id": 2,
+        "name": "Apple MacBook Pro 13英寸 M2 16G 512G",
+        "price": 12499,
+        "cover": "cb72a08b6714e92f.jpg"
+    },
+    {
+        "id": 5,
+        "category_id": 2,
+        "name": "Apple MacBook Pro 13英寸 M2 8G 512G",
+        "price": 9999,
+        "cover": "cb72a08b6714e92f.jpg"
+    },
+    {
+        "id": 6,
+        "category_id": 2,
+        "name": "Apple MacBook Air 13.6英寸 M2 8G 256G",
+        "price": 9999,
+        "cover": "9f1ddde6819f83c6.jpg"
+    },
+    {
+        "id": 7,
+        "category_id": 3,
+        "name": "索尼（SONY）XR-65X91K 65",
+        "price": 7499,
+        "cover": "99d825f9a21ec8f9.jpg"
+    },
+    {
+        "id": 8,
+        "category_id": 3,
+        "name": "索尼（SONY）KD-75X80K 75英寸 全面屏",
+        "price": 7499,
+        "cover": "21531e448e996424.jpg"
+    },
+    {
+        "id": 9,
+        "category_id": 3,
+        "name": "索尼（SONY）XR-75X90K 75",
+        "price": 9999,
+        "cover": "deeb62fb9b74d6f4.jpg"
+    }    
+]
