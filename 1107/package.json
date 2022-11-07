@@ -1,0 +1,17 @@
+{
+  "name": "1107",
+  "version": "1.0.0",
+  "description": "",
+  "main": "http3000.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "koa": "^2.13.4",
+    "koa-router": "^12.0.0",
+    "koa-static": "^5.0.0"
+  }
+}

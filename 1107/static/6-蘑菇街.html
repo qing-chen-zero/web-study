@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./jsonp.js"></script>
+</head>
+<body>
+    
+    <script>
+
+        let page = 1;
+        getData()
+        function getData() {
+            ajax({
+                url : "https://list.mogu.com/search",
+                data: {
+                    _version: 8193,
+                    ratio: "3%3A4",
+                    cKey: 15,
+                    page: page,
+                    sort: "pop",
+                    ad : 0,
+                    fcid : 52014,
+                    action: "food"
+                },
+                dataType: "jsonp",
+                jsonp: "callback",
+                success: function(res) {
+                    page++;
+                    console.log(res);
+                }
+            })
+        }
+
+        // 下拉加载
+        document.onscroll = function() {
+            let windowHeight = document.documentElement.clientHeight;
+            let contentHeight = document.documentElement.offsetHeight;
+            let scrollHeight = contentHeight - windowHeight;
+            let scrollTop = document.documentElement.scrollTop;
+            if (scrollTop >= scrollHeight - 10) {
+                getData(page)
+            }
+        }
+    </script>
+</body>
+</html>

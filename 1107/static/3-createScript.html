@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <button>click get over library</button>
+
+    <script>
+        let btn = document.querySelector("button");
+        function cbfn(res){
+            console.log(res);
+        }
+        btn.onclick = function() {
+            let o = document.createElement("script");
+            o.src = "http://localhost:4000/getAjax?cb=cbfn";
+            document.querySelector("head").appendChild(o);
+            // console.log(a);
+            // o.onload = function() {
+            //     console.log(a);
+            // }
+        }
+    </script>
+</body>
+</html>

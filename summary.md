@@ -6241,3 +6241,355 @@ router.post('/fileUpload', (ctx, next) => {
 ### node 服务器
 
 - 后端只提供接口，返回数据
+
+### Ajax跨域问题
+
+- 浏览器同源策略
+
+  - 同源策略是浏览器的一个安全功能，不同源的客户端脚本在没有明确授权的情况下，不能读写对方资源
+  - 源：协议、域名、端口号
+
+- 跨域
+
+- 不受同源策略影响的资源引入
+
+  > <script src=''></script>  <img> <link> <iframe>
+
+## JSONP
+
+### 动态创建script
+
+- 访问地址： http://localhost:3000/3-createScript.html
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+
+    <button>click get over library</button>
+
+    <script>
+      let btn = document.querySelector("button");
+      function cbfn(res){
+        console.log(res);
+      }
+      btn.onclick = function() {
+        let o = document.createElement("script");
+        o.src = "http://localhost:4000/getAjax?cb=cbfn";
+        document.querySelector("head").appendChild(o);
+        // console.log(a);
+        // o.onload = function() {
+        //     console.log(a);
+        // }
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+~~~ js
+// 4000 服务器
+const Koa = require("koa");
+const static = require("koa-static");
+const Router = require("koa-router")
+const app = new Koa()
+const router = new Router()
+
+app.use(static(__dirname + "/static"));
+router.get("/", (ctx, next) => {
+  ctx.body = "hello run at 4000 port";
+})
+router.get("/getAjax", (ctx, next) => {
+  // console.log(123);
+  // ctx.body = {
+  //     name: "zhangsan",
+  //     age : 21
+  // }
+  let cb = ctx.query.cb;
+  let obj = {
+    a: 20,
+    b: 21
+  }
+  // ctx.body = "var a = 10"
+  ctx.body = `${cb}(${JSON.stringify(obj)})`;
+})
+
+app.use(router.routes());
+app.listen(4000);
+
+// 3000 服务器
+const Koa = require("koa");
+const static = require("koa-static");
+const Router = require("koa-router")
+const app = new Koa()
+const router = new Router()
+
+app.use(static(__dirname + "/static"));
+router.get("/", (ctx, next) => {
+  ctx.body = "hello";
+})
+router.get("/getAjax", (ctx, next) => {
+  ctx.body = {
+    name: "lizi",
+    age : 20
+  }
+})
+
+app.use(router.routes());
+app.listen(3000);
+~~~
+
+### 在Ajax基础上封装jsonp
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+
+  <body>
+
+    <button>click me</button>
+
+    <script>
+
+      let btn = document.querySelector("button");
+
+      btn.onclick = function(){
+        ajax({
+          url :"http://localhost:4000/getAjax",
+          data: {
+            name: 'zhangsan',
+            age:20
+          },
+          dataType : "jsonp",
+          jsonp: "callback", 
+          success: function(res) {
+            console.log(res);
+          }
+        })
+      }
+      function ajax(options) {
+        let opts = Object.assign({
+          method: 'get',
+          url: '',
+          headers: {
+            'content-type': 'application/x-www-form-urlencoed'
+          },
+          jsonp: "cb",
+          data: '',
+          success: function () {
+
+          }
+        }, options)
+
+        // 处理jsonp请求：
+        if(opts.dataType === "jsonp") {
+          jsonpFn(opts.url, opts.data, opts.jsonp, opts.success);
+          return false;
+        }
+        function jsonpFn(url, data, cbName, cbFn) {
+          let fnName = "qing_chen" + Math.random().toString().substr(2);
+          window[fnName] = cbFn; // 挂载函数
+          // cnName => cb/callback
+          let path = url + "?" + o2u(data) + "&" + cbName + "=" + fnName
+          let o = document.createElement('script');
+          o.src = path;
+          document.querySelector("head").appendChild(o);
+        }
+        let xhr = new XMLHttpRequest()
+        if (options.method == 'get') {
+          let data = o2u(opts.data)
+          options.url = options.url + "?" + data;
+        }
+        xhr.open(options.method, options.url, true);
+        for (let key in opts.headers) {
+          xhr.setRequestHeader(key, opts.headers[key]);
+        }
+        let sendData;
+        switch (opts.headers['content-type']) {
+          case 'application/x-www-form-urlencoded':
+            sendData = o2u(opts.data);
+            break;
+          case 'application/json':
+            sendData = JSON.stringify(opts.data);
+            break;
+        }
+        xhr.onload = function () {
+          let resData;
+          if (xhr.getAllResponseHeaders('content-type').includes('xml')) {
+            resData = xhr.responseXML;
+          } else {
+            resData = JSON.parse(xhr.responseText);
+          }
+          options.success(resData);
+        }
+        if (options.method == "get") {
+          xhr.send();
+        } else {
+          xhr.send(sendData);
+        }
+      }
+      function o2u(obj) {
+        let keys = Object.keys(obj);
+        let values = Object.values(obj);
+        return keys.map((v, k) => {
+          return `${v}=${values[k]}`;
+        }).join("&");
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+~~~Js
+// 路由
+router.get("/getAjax", (ctx, next) => {
+  // console.log(123);
+  // ctx.body = {
+  //     name: "zhangsan",
+  //     age : 21
+  // }
+  let cb = ctx.query.callback;
+  let obj = {
+    a: 20,
+    b: 21
+  }
+  // ctx.body = "var a = 10"
+  ctx.body = `${cb}(${JSON.stringify(obj)})`;
+})
+~~~
+
+### jsonp 请求百度api
+
+~~~ html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./jsonp.js"></script>
+  </head>
+  <body>
+    <h1>百度搜索</h1>
+    <input type="text" class="myinput">
+    <dic class="exchange">
+
+    </dic>
+    <script>
+      document.querySelector(".myinput").onblur = function() {
+        ajax({
+          url: "https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su",
+          dataType : "jsonp",
+          data: {
+            wd : this.value
+          },
+
+          success: function(res) {
+            let data = res.s;
+            console.log(data);
+            let html = "<ul>";
+            data.forEach(v=>{
+              html += `<li>${v}</li>`;
+            })
+            html += "</ul>";
+            document.querySelector(".exchange").innerHTML = html;
+          } 
+        })
+      }
+    </script>
+  </body>
+</html>
+~~~
+
+~~~ js
+// jsonp.js
+function ajax(options) {
+  let opts = Object.assign({
+    method: 'get',
+    url: '',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoed'
+    },
+    jsonp: "cb",
+    data: '',
+    success: function () {
+
+    }
+  }, options)
+
+  // 处理jsonp请求：
+  if(opts.dataType === "jsonp") {
+    jsonpFn(opts.url, opts.data, opts.jsonp, opts.success);
+    return false;
+  }
+
+  function jsonpFn(url, data, cbName, cbFn) {
+    let fnName = "qing_chen" + Math.random().toString().substr(2);
+    window[fnName] = cbFn; // 挂载函数
+    // cnName => cb/callback
+    let path = url + "?" + o2u(data) + "&" + cbName + "=" + fnName
+    let o = document.createElement('script');
+    o.src = path;
+    document.querySelector("head").appendChild(o);
+  }
+
+
+
+  let xhr = new XMLHttpRequest()
+  if (options.method == 'get') {
+    let data = o2u(opts.data)
+    options.url = options.url + "?" + data;
+  }
+  xhr.open(options.method, options.url, true);
+  for (let key in opts.headers) {
+    xhr.setRequestHeader(key, opts.headers[key]);
+  }
+  let sendData;
+  switch (opts.headers['content-type']) {
+    case 'application/x-www-form-urlencoded':
+      sendData = o2u(opts.data);
+      break;
+    case 'application/json':
+      sendData = JSON.stringify(opts.data);
+      break;
+  }
+  xhr.onload = function () {
+    let resData;
+    if (xhr.getAllResponseHeaders('content-type').includes('xml')) {
+      resData = xhr.responseXML;
+    } else {
+      resData = JSON.parse(xhr.responseText);
+    }
+    options.success(resData);
+  }
+  if (options.method == "get") {
+    xhr.send();
+  } else {
+    xhr.send(sendData);
+  }
+}
+
+
+function o2u(obj) {
+  let keys = Object.keys(obj);
+  let values = Object.values(obj);
+  return keys.map((v, k) => {
+    return `${v}=${values[k]}`;
+  }).join("&");
+}
+~~~
+
