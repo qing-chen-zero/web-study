@@ -6253,7 +6253,26 @@ router.post('/fileUpload', (ctx, next) => {
 
 - 不受同源策略影响的资源引入
 
-  > <script src=''></script>  <img> <link> <iframe>
+
+> <script src=''></script>  <img> <link> <iframe>
+
+- 使用头信息解决跨域
+
+
+> "Access-Control-Allow-Origin" :  "*"  // 允许所有访问
+
+### Koa-server-http-proxy 中间件
+
+~~~ js
+app.use(proxy('/api', {
+  target: 'http://localhost:8888',
+  pathRewrite : {
+    '^/api' : ''
+  }
+}))
+~~~
+
+
 
 ## JSONP
 
@@ -6593,3 +6612,147 @@ function o2u(obj) {
 }
 ~~~
 
+## JWT 鉴权
+
+- 服务器
+
+~~~ js
+const Koa = require('koa');
+const { koaBody } = require('koa-body');
+const Router = require('@koa/router')
+const mysql = require('mysql2');
+const app = new Koa();
+const router = new Router();
+const jwt = require('jsonwebtoken');
+
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "123456",
+  database: "shop"
+})
+
+function query(sql, values) {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, values, function (err, results) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    })
+  })
+}
+
+router.get('/api', async ctx => {
+  if (ctx.get('Authorization')) {
+    let token = ctx.get('Authorization');
+    let decoded = jwt.verify(token.replace('Bearer ', ''), 'jiajia');
+    // console.log(decoded);
+    if (!decoded) {
+      ctx.body = '无权限访问';
+      return;
+    }
+  }
+  ctx.body = "欢迎使用api";
+})
+
+let users = [
+  { id: 1, name: "the one", password: '123' },
+  { id: 2, name: "the two", password: '123' }
+]
+
+
+router.post('/login', async ctx => {
+  let token = jwt.sign({id: 1, name: 'the one'}, 'jiajia')
+  console.log("token", token);
+  ctx.set('Authorization', 'Bearer ' + token)
+  ctx.body = "登陆成功";
+})
+
+
+
+app.use(router.routes())
+
+app.listen(8888);
+~~~
+
+- 静态路由
+
+~~~ js
+const Koa = require("koa");
+const http = require('http');
+const koaStaticCache = require('koa-static-cache');
+const proxy = require('koa-server-http-proxy')
+
+const app = new Koa();
+
+app.use(proxy('/api', {
+  target: 'http://localhost:8888',
+  pathRewrite : {
+    '^/api' : ''
+  }
+}))
+
+
+app.use(koaStaticCache({
+  prefix: '/',
+  dir: __dirname + "/static",
+  gzip: true,
+  dynamic: true
+}))
+
+
+app.listen(9999);
+
+
+~~~
+
+- html
+
+  ~~~html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+    </head>
+    <body>
+      <button id="btn">获取users</button>
+      <button id="getDataBtn">获取-data</button>
+  
+      <script>
+  
+        let btnElem = document.querySelector("#btn");
+        let getDataBtnElem = document.querySelector("#getDataBtn");
+        btnElem.onclick = function () {
+          let xhr = new XMLHttpRequest()
+          xhr.open("post", "/api/login",true);
+          xhr.onload = function() {
+            // console.log(xhr.responseText);
+            if (xhr.getResponseHeader('Authorization')) {
+              let token = xhr.getResponseHeader('Authorization');
+              localStorage.setItem('token', token);
+            }
+          }
+          xhr.send();
+        }
+  
+        getDataBtnElem.onclick = function () {
+          let xhr = new XMLHttpRequest()
+          xhr.open("get", "/api/api",true);
+          xhr.onload = function() {
+            console.log(xhr.responseText);
+          }
+          xhr.setRequestHeader('Authorization', localStorage.getItem("token"));
+          xhr.send();
+        }
+      </script>
+    </body>
+  </html>
+  ~~~
+
+  

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="btn">Post-users</button>
+
+    <script>
+
+        let btnElem = document.querySelector("#btn");
+        btnElem.onclick = function () {
+            let xhr = new XMLHttpRequest()
+            xhr.open("post", "http://localhost:8888/postUser",true);
+            xhr.onload = function() {
+                console.log(xhr.responseText);
+            }
+            let fd = new FormData();
+            fd.append("name", "xiaoming");
+            xhr.setRequestHeader("content-type", "application/json")
+            xhr.send(JSON.stringify({name: "my jiajia"}));
+        }
+    </script>
+</body>
+</html>
