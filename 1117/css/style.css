@@ -1,0 +1,30 @@
+#grade {
+    text-align: center;
+}
+
+#map {
+    position: relative;
+    height: 400px;
+    width: 400px;
+    background: #000;
+    margin: 0 auto;
+}
+
+#control {
+    height: 100px;
+    width: 400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+#control span {
+    display: inline-block;
+    font-size: 50px;
+    cursor: pointer;
+}
+
+#contol_down span {
+    margin: 0 5px;
+}

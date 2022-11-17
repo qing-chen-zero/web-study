@@ -1162,10 +1162,10 @@ $(".box").css("wh","600px");
 
 ### Map地图类
 
-		- clearData 清空数据
-		- setData 设置数据
-		- include 该坐标是否包含数据
-		- render 将数据渲染在地图元素上
+	- clearData 清空数据
+	- setData 设置数据
+	- include 该坐标是否包含数据
+	- render 将数据渲染在地图元素上
 
 ### Food 食物类
 
