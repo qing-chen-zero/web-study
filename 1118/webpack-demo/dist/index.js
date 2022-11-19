@@ -1,0 +1,1 @@
+(()=>{"use strict";({fn(){console.log("fn")}}).fn()})();
